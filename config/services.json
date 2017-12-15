@@ -1,0 +1,41 @@
+{
+	"thedash" : 
+		{
+	 		"selector" : ".wob",
+			"types" : ["gauge", "line-chart", "bar-chart" , "weather", "clock", "base-list", "textbox", "timeline", "image", "diy", "basic-value"],
+			"map" : { "gauge" : "GAUGE", "line-chart" : "LINE", "bar-chart" : "BAR", "textbox" : "TEXT", "basic-value" : "TEXT", "base-list" : "TABLE", "timeline" : "TABLE"} 
+		},
+ 	"klipfolio" :
+ 		{
+ 			"selector" : ".item-container",
+ 			"types" : ["chart_series", "gauge", "chart_pie", "label", "table","input", "panel_grid"],
+ 			"map" : {"chart_series" : "LINE", "gauge" : "GAUGE", "chart_pie" : "PIE", "panel_grid" : "GRIDE"}
+ 		},
+ 	"clicdata" :
+ 		{
+ 			"selector" : ".widget",
+ 			"types" : ["CH1", "CH2", "CH4", "CH5", "CH6", "GA1", "MA1", "TX1"],
+ 			"map" : {}
+ 		},
+ 	"datapine" :
+ 		{
+ 			"selector" : ".widget_GizmoGrid__gizmos",
+ 			"types" : [],
+ 			"map" : {},
+ 			"hasHighcharts" : true
+ 		},
+ 	"showcase" :
+ 		{
+ 			"selector" : "bime-widgets bime-widget",
+ 			"types" : ["pieChart", "columnChart", "lineChart", "kpiChart"],
+ 			"map" : {"pieChart" : "PIE", "columnChart" : "BAR", "lineChart" : "LINE", "kpiChart" : "TEXT"}
+ 		},
+ 	"geckoboard" :
+ 		{
+ 			"selector" : ".widget",
+ 			"types" : ["chart", "barchart", "number-widget"],
+ 			"map" : {}
+ 		}
+
+
+}
