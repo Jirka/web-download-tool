@@ -1,210 +1,226 @@
-function Config(mockService, fs, console){
-
-this.url = null; //or "" ?
-this.service = null; 
-this.selector = null;
-this.customWidget = 'websiteWidget';
-this.types = [];
-this.map = {};
-
-this.isDashboard = true;
-
-this.windowSizeX = 1000;
-this.windowSizeY = 1000;
-
-this.configServices = "config/services.json";
-this.configGeneral = "config/config.json";
-
-this.absolutePath = "";
-this.resultPath = "./result";
-
-this.imgFormat = 'png';
-
-this.outputPath = "output/";
-this.screenPath = "./screens/";
-
-this.timeout = 5000;
-
-//getNext() -> transformation to fullpath+web+relativePath+.js
-this.modules = [
-	'modules/web/Service.js', 
-	'modules/web/Widget.js',
-	'modules/web/Document.js',
-	'modules/web/HighChartGraphs.js',
-	'modules/web/Widgets/clicdataWidget.js',	//include just one needed ____Widget.js
-	'modules/web/Widgets/datapineWidget.js',
-	'modules/web/Widgets/geckoboardWidget.js',
-	'modules/web/Widgets/klipfolioWidget.js',
-	'modules/web/Widgets/thedashWidget.js',
-	'modules/web/Widgets/showcaseWidget.js',
-	'modules/web/Widgets/websiteWidget.js'
-];
-
-
-//mock serviceName | -a serviceName ?| website | -c website element 
-//should there be -c arg?  
-//-s services -c general
-
-this.parseArguments = function(args) 
+function Config(mockService, fs, console)
 {
-	//just for testing
-	if(args[1] === 'mock'){
-		service = mockService.get(
-			(args[2] !== undefined) ? args[2] : 'test', 
-			(args[3] !== undefined) ? args[3] : 0 
-		);
-		this.url = service.url;
-		this.selector = service.selector;
-		this.service = service.service;
-		this.customWidget = this.service + 'Widget';
+	this.properties = ['url', 'selector', 'service', 'customWidget', 'types', 'map'];
 
-		var jsonConfig= this.readConfigFiles();
-		var service = this.get(jsonConfig[this.service]);
-		if(service !== null){
-			this.types = this.get(service.types);
-			this.map = this.get(service.map);
+	this.url = null; //or "" ?
+	this.service = null; 
+	this.selector = 'body'; //root
+	this.customWidget = 'websiteWidget';
+	this.types = [];
+	this.map = {};
+
+	this.windowSizeX = 1000;
+	this.windowSizeY = 1000;
+
+	this.configServices = "config/services.json";
+
+	this.absolutePath = "";
+	this.resultPath = "./result";
+
+	this.imgFormat = 'png';
+
+	this.outputPath = "output/";
+	this.screenPath = "./screens/";
+
+	this.timeout = 5000;
+
+	//getNext() -> transformation to fullpath+web+relativePath+.js
+	this.modules = [
+		'modules/web/Service.js', 
+		'modules/web/Widget.js',
+		'modules/web/Document.js',
+		'modules/web/HighChartGraphs.js',
+		'modules/web/Widgets/clicdataWidget.js',	//include just one needed ____Widget.js
+		'modules/web/Widgets/datapineWidget.js',
+		'modules/web/Widgets/geckoboardWidget.js',
+		'modules/web/Widgets/klipfolioWidget.js',
+		'modules/web/Widgets/thedashWidget.js',
+		'modules/web/Widgets/showcaseWidget.js',
+		'modules/web/Widgets/websiteWidget.js'
+	];
+
+	this.parseArguments = function(args) 
+	{
+		if(args.length === 0){
+			throw "No arguments supplied"; //add hint
 		}
-		else{
-			throw "no types set for mock object";
+
+		//find custom config file if exists
+		var customConfigPath = null;
+		for (var i = 0; i < args.length; i++) {
+			if(args[i] === '-c') {
+				var path = args[i+1];
+				customConfigPath = (path !== undefined) ? path : null;
+			}
 		}
 
-		return; 
+		//read config files
+		var services = this.readAndParseFile(this.configServices);
+		var configuration = this.readAndParseFile(customConfigPath);
+
+		if (args[1] === 'mock') {
+			//just for testing purposes
+			this.url = mockService.get(
+				(args[2] !== undefined) ? args[2] : 'test', 
+				(args[3] !== undefined) ? args[3] : 0
+			);
+		} else {
+			this.url = args[1];
+		}
+
+		if(!this.isUrlValid()){
+			throw "URL adress is not valid"; //add format example
+		}
+
+		this.service = this.parseUrl();
+		if (!this.isSupported(services)) { return; }
+
+		service = this.get(services[this.service]);
+		//merge configuration with service
+		mergedConfiguration = service;
+
+		this.setProperties(mergedConfiguration);
 	}
 
-	//actual argument processing
-	if(args.length === 0){
-		throw "No arguments supplied";
-	}
-
-	this.url = args[1];
-	if(!this.isUrlValid()){
-		throw "URL adress is not valid";
-	}
-
-	this.service = this.parseUrl();
-	if(args[2] !== undefined){
-		this.selector = args[2];
-		this.isDashboard = false; //remove this property
-	}
-	else{
-		if(!this.isSupported()){
-			this.selector = 'body'; //root
-			this.isDashboard = false;
+	this.setProperties = function(configuration)
+	{
+		if(configuration === null){
 			return;
 		}
 
-		//reads config json file and sets it as properties
-		var jsonConfig = this.readConfigFiles();
-		//check if these properties even exist before assigning
-		service = this.get(jsonConfig[this.service]);
-		if(service !== null){
-			this.selector = this.get(service.selector);
-			this.types = this.get(service.types);
-			this.map = this.get(service.map);
-			this.customWidget = this.service + 'Widget';
+		for (var i in configuration) {
+			this[i] = configuration[i];
 		}
-	}
-}
 
-this.get = function(value){
-	return (value !== undefined) ? value : null; 
-}
-
-//split to two functions
-this.readConfigFiles = function()
-{
-	var services = fs.read("config/services.json"); //absolute path
-	var general = fs.read("config/config.json");
-
-	return JSON.parse(services);
-
-//put to module probably?
-//var servicesConfig = JSON.parse(content);
-//var currentService = servicesConfig[web.predpona];
-
-}
-
-
-this.parseUrl = function()
-{
-	var aElem = document.createElement('a');
-	aElem.href = this.url;
-	// console.log(aElem.href); //remove
-	return aElem.hostname;
-}
-
-/*
-* @returns bool
-*/
-this.isUrlValid = function()
-{
-	//should this be checked for null?
-	var patt = /(http|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?/;
-	var pattern = new RegExp(patt);
-
-	if(!pattern.test(this.url)){
-		return false;
-	} 
-	
-	return true;
-}
-
-
-this.includes = function(elems, elem){
-	var include = false;
-
-	for(var i in elems){
-		if(elems[i] === elem){
-			include = true;
-		}
+		this.customWidget = this.service + 'Widget';
 	}
 
-	return include;
-}
+	this.get = function(value)
+	{
+		return (value !== undefined) ? value : null; 
+	}
 
-this.isSupported = function()
-{
-	serviceSplit = this.service.split('.');
-	var services = this.readConfigFiles();
+	/*
+	* @returns null|string file content
+	*/
+	this.readAndParseFile = function(path)
+	{
+		if(path === null) {
+			return null;
+		}
 
-	var suppoted = false;
-    for(var i in services){
-        if(this.includes(serviceSplit, i)){
-    	   console.log('supported! service :: '+ this.service);
-        	this.service = i;
-    	// console.log('service :: '+ this.service);
-            suppoted = true;
-            break;
-        }
-        else{
-        	// console.log('sevice not supported');
-        }
-    }
+		if(!fs.exists(path)) {
+			throw "Given file doesnt exist"; //specify which
+		}
 
-    return suppoted;
-}
+		try{
+			result = JSON.parse(fs.read(path))
+		} catch(e) {
+			throw 'Problem with parsing json file';
+		}
 
-this.makeSerializable = function()	//rename probably
-{
-	properties = {};
+		return result;
+	}
 
-	//choose this wisely, not all are needed
-	//maybe group those related to service settings
-	properties['url'] = this.url;	//is this needed inside website?
-	properties['service'] = this.service;
-	properties['selector'] = this.selector;
- 	properties['types'] = this.types;
- 	properties['map'] = this.map;
 
-	properties['absolutePath'] = this.absolutePath;
- 	properties['imgFormat'] = this.imgFormat;
- 	properties['maxLevel'] = 1; //from config
- 	properties['customWidget'] = this.customWidget;
- 	properties['width'] = this.windowSizeX;
- 	properties['height'] = this.windowSizeY;
+	/*
+	*@returns string url 
+	*/
+	this.parseUrl = function()
+	{
+		var element = document.createElement('a');
+		element.href = this.url;
 
- 	return properties;
-}
+		return element.hostname;
+	}
+
+	/*
+	* @returns bool
+	*/
+	this.isUrlValid = function()
+	{
+		//should this be checked for null?
+		var patt = /(http|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?/;
+		var pattern = new RegExp(patt);
+
+		if(!pattern.test(this.url)){
+			return false;
+		} 
+		
+		return true;
+	}
+
+
+	this.includes = function(elems, elem){
+		var include = false;
+
+		for(var i in elems){
+			if(elems[i] === elem){
+				include = true;
+			}
+		}
+
+		return include;
+	}
+
+	this.isSupported = function(services)
+	{
+		serviceSplit = this.service.split('.');
+		console.log(services);
+
+		var suppoted = false;
+	    for(var i in services){
+	    	console.log(i);
+	        if(this.includes(serviceSplit, i)){
+	    	   console.log('supported! service :: '+ this.service);
+	        	this.service = i;
+	    	// console.log('service :: '+ this.service);
+	            suppoted = true;
+	            break;
+	        }
+	        else{
+	        	// console.log('sevice not supported');
+	        }
+	    }
+
+	    return suppoted;
+	}
+
+	this.makeSerializable = function()	//rename probably
+	{
+		properties = {};
+
+		//choose this wisely, not all are needed
+		//maybe group those related to service settings
+		properties['url'] = this.url;	//is this needed inside website?
+		properties['service'] = this.service;
+		properties['selector'] = this.selector;
+	 	properties['types'] = this.types;
+	 	properties['map'] = this.map;
+
+		properties['absolutePath'] = this.absolutePath;
+	 	properties['imgFormat'] = this.imgFormat;
+	 	properties['maxLevel'] = 1; //from config
+	 	properties['customWidget'] = this.customWidget;
+	 	properties['width'] = this.windowSizeX;
+	 	properties['height'] = this.windowSizeY;
+
+	 	return properties;
+	}
+
+	this.print = function()
+	{
+		console.log('-----------------CONFIG START--------------------');
+		console.log('url:::'+this.url);
+		console.log('service:::'+this.service);
+		console.log('selector::'+this.selector);
+		console.log('imgFormat::'+this.imgFormat);
+		console.log('width::'+this.windowSizeX);
+		console.log('height::'+this.windowSizeY);
+		// console.log('maxLevel::'+this.imgFormat);
+
+		console.log('-----------------CONFIG END--------------------');
+	}
 
 }
 

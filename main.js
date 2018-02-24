@@ -15,6 +15,10 @@ try{
     phantom.exit(0);
 }
 
+config.print();
+
+// phantom.exit(0);
+
 //sets browsers window size
 page.viewportSize = {width: config.windowSizeX, height: config.windowSizeY};
 

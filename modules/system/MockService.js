@@ -1,4 +1,5 @@
-function MockService(){
+function MockService()
+{
 
 	this.services = {
 		"klipfolio" : {
@@ -34,7 +35,8 @@ function MockService(){
 		"test" : {"urls" : ['https://www.w3.org/People/mimasa/test/'], "selector" : "none"}
 	};
 
-	this.get = function(name, index){
+	this.get = function(name, index)
+	{
 		if(this.services[name] === undefined) return false;
 
 		var service = {};
@@ -42,11 +44,12 @@ function MockService(){
 		service.selector = this.services[name].selector;
 		service.service = name;
 
-		return service;
+		return service.url;
 	};
 
 }
 
-exports.create = function(){
+exports.create = function()
+{
 	return new MockService();
 }
