@@ -3,6 +3,9 @@ var page = require('webpage').create();
 var system = require('system');
 var fs = require('fs');
 
+var validator = require('./external/validator/validate.js');
+// console.log(JSON.stringify(validator.validate({password: "bad"}, constraints)));
+
 //custom modules
 var mockService = require('./modules/system/MockService').create(); //for testing only
 var config = require('./modules/system/Config').create(mockService, fs,console);
@@ -20,14 +23,13 @@ config.print();
 // phantom.exit(0);
 
 //sets browsers window size
-page.viewportSize = {width: config.windowSizeX, height: config.windowSizeY};
+page.viewportSize = {width: config.width, height: config.height};
 
 page.open(config.url, function(status){
     if(status === 'success'){
 
-        setTimeout(function(config){    //use callbacks?
+        setTimeout(function(config){
 
-            //think about mechanism, if there are 0 widgets, then try wait few extrea seconds
             //modules injection inside website context
             for(var j in config.modules){
                 if(page.injectJs(config.modules[j]) === false){    
@@ -39,8 +41,8 @@ page.open(config.url, function(status){
             //takes screenshot of whole site
             page.render(
                 //absolutePath + maybe getScreenPath from config -> this looks really bad
-                config.resultPath+'/'+config.service+'/'+config.service + '.' + config.imgFormat, 
-                {format: config.imgFormat, quality: '100'}
+                config.resultPath+'/'+config.service+'/'+config.service + '.' + config.imageFormat, 
+                {format: config.imageFormat, quality: '100'}
             );
 
             //save content of page, just for debug
@@ -65,6 +67,7 @@ page.open(config.url, function(status){
                 return JSON.stringify(dashOut);
 
             }, serializableConfig); 
+            //-------------------page processing end------------------------
 
             //deserialization of result
             dashResult = JSON.parse(dashResult);
@@ -102,14 +105,14 @@ function renderWidgets(hierarchy, level)
 
             page.render(
                 config.resultPath + '/' + config.service + '/'+ config.screenPath +
-                newLevel + '_' + config.service+'.'+config.imgFormat, 
-                {format: config.imgFormat, quality: '100'} // constant to config
+                newLevel + '_' + config.service+'.'+config.imageFormat, 
+                {format: config.imageFormat, quality: '100'} // constant to config
             );
 
 
             console.log(newLevel);
             console.log(config.screenPath+config.service+'/'+
-                newLevel + '_' + config.service+i+'.'+config.imgFormat);
+                newLevel + '_' + config.service+i+'.'+config.imageFormat);
             console.log(hierarchy[i].coord);
         }
 

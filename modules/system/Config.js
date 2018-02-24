@@ -1,7 +1,5 @@
 function Config(mockService, fs, console)
 {
-	this.properties = ['url', 'selector', 'service', 'customWidget', 'types', 'map'];
-
 	this.url = null; //or "" ?
 	this.service = null; 
 	this.selector = 'body'; //root
@@ -9,20 +7,21 @@ function Config(mockService, fs, console)
 	this.types = [];
 	this.map = {};
 
-	this.windowSizeX = 1000;
-	this.windowSizeY = 1000;
+	this.width = 1000;
+	this.height = 1000;
 
 	this.configServices = "config/services.json";
 
-	this.absolutePath = "";
 	this.resultPath = "./result";
-
-	this.imgFormat = 'png';
-
-	this.outputPath = "output/";
 	this.screenPath = "./screens/";
 
+	this.imageFormat = 'png';
+
 	this.timeout = 5000;
+	this.maxHierarchyLevel = 1;
+
+	this.generateSubwidgets = false;
+	this.treatAsWebsite = false;
 
 	//getNext() -> transformation to fullpath+web+relativePath+.js
 	this.modules = [
@@ -75,15 +74,21 @@ function Config(mockService, fs, console)
 		this.service = this.parseUrl();
 		if (!this.isSupported(services)) { return; }
 
-		service = this.get(services[this.service]);
-		//merge configuration with service
-		mergedConfiguration = service;
+		//overrides less important settings
+		mergedConfiguration = (services[this.service] !== null) ? services[this.service] : {};  
+		for(var i in configuration) {
+			if(configuration[i] !== null){
+				mergedConfiguration[i] = configuration[i];
+			}
+		}
 
 		this.setProperties(mergedConfiguration);
 	}
 
 	this.setProperties = function(configuration)
 	{
+		//validate data types
+
 		if(configuration === null){
 			return;
 		}
@@ -124,7 +129,7 @@ function Config(mockService, fs, console)
 
 
 	/*
-	*@returns string url 
+	*@returns string url hostname 
 	*/
 	this.parseUrl = function()
 	{
@@ -163,6 +168,9 @@ function Config(mockService, fs, console)
 		return include;
 	}
 
+	/*
+	* @returns bool
+	*/
 	this.isSupported = function(services)
 	{
 		serviceSplit = this.service.split('.');
@@ -170,54 +178,54 @@ function Config(mockService, fs, console)
 
 		var suppoted = false;
 	    for(var i in services){
-	    	console.log(i);
 	        if(this.includes(serviceSplit, i)){
 	    	   console.log('supported! service :: '+ this.service);
 	        	this.service = i;
-	    	// console.log('service :: '+ this.service);
 	            suppoted = true;
 	            break;
-	        }
-	        else{
-	        	// console.log('sevice not supported');
 	        }
 	    }
 
 	    return suppoted;
 	}
 
-	this.makeSerializable = function()	//rename probably
+	this.makeSerializable = function()
 	{
 		properties = {};
 
-		//choose this wisely, not all are needed
-		//maybe group those related to service settings
 		properties['url'] = this.url;	//is this needed inside website?
 		properties['service'] = this.service;
 		properties['selector'] = this.selector;
 	 	properties['types'] = this.types;
 	 	properties['map'] = this.map;
 
-		properties['absolutePath'] = this.absolutePath;
-	 	properties['imgFormat'] = this.imgFormat;
-	 	properties['maxLevel'] = 1; //from config
+	 	properties['width'] = this.with;
+	 	properties['height'] = this.height;
+	 	properties['imageFormat'] = this.imageFormat;
 	 	properties['customWidget'] = this.customWidget;
-	 	properties['width'] = this.windowSizeX;
-	 	properties['height'] = this.windowSizeY;
+	 	properties['maxHierarchyLevel'] = this.maxHierarchyLevel;
+	 	properties['generateSubwidgets'] = this.generateSubwidgets;
+	 	properties['treatAsWebsite'] = this.treatAsWebsite; //need to export?
 
 	 	return properties;
 	}
 
+	/*
+	* for debug purposes only
+	*/
 	this.print = function()
 	{
 		console.log('-----------------CONFIG START--------------------');
 		console.log('url:::'+this.url);
 		console.log('service:::'+this.service);
 		console.log('selector::'+this.selector);
-		console.log('imgFormat::'+this.imgFormat);
-		console.log('width::'+this.windowSizeX);
-		console.log('height::'+this.windowSizeY);
-		// console.log('maxLevel::'+this.imgFormat);
+		console.log('imageFormat::'+this.imageFormat);
+		console.log('width::'+this.width);
+		console.log('height::'+this.height);
+		console.log('maxHierarchyLevel::'+this.maxHierarchyLevel);
+		console.log('treatAsWebsite::'+this.treatAsWebsite);
+		console.log('generateSubwidgets::'+this.generateSubwidgets);
+		console.log('resultPath::'+this.resultPath);
 
 		console.log('-----------------CONFIG END--------------------');
 	}
