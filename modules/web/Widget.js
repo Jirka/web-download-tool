@@ -10,6 +10,7 @@ function Widget(console){
 	this.json = null; //only selected services
 
 	this.exernalService = null;
+
 	
 	// hasHighcharts = false;  //shouldnt this be in concreate service? probably not
 	//Highchartobject = [Object object];

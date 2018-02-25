@@ -20,7 +20,7 @@ function Config(mockService, fs, console)
 	this.timeout = 5000;
 	this.maxHierarchyLevel = 1;
 
-	this.generateSubwidgets = false;
+	this.generateWidetScreenshots = false;
 	this.treatAsWebsite = false;
 
 	//getNext() -> transformation to fullpath+web+relativePath+.js
@@ -204,7 +204,7 @@ function Config(mockService, fs, console)
 	 	properties['imageFormat'] = this.imageFormat;
 	 	properties['customWidget'] = this.customWidget;
 	 	properties['maxHierarchyLevel'] = this.maxHierarchyLevel;
-	 	properties['generateSubwidgets'] = this.generateSubwidgets;
+	 	properties['generateWidetScreenshots'] = this.generateWidetScreenshots;
 	 	properties['treatAsWebsite'] = this.treatAsWebsite; //need to export?
 
 	 	return properties;
@@ -224,7 +224,7 @@ function Config(mockService, fs, console)
 		console.log('height::'+this.height);
 		console.log('maxHierarchyLevel::'+this.maxHierarchyLevel);
 		console.log('treatAsWebsite::'+this.treatAsWebsite);
-		console.log('generateSubwidgets::'+this.generateSubwidgets);
+		console.log('generateWidetScreenshots::'+this.generateWidetScreenshots);
 		console.log('resultPath::'+this.resultPath);
 
 		console.log('-----------------CONFIG END--------------------');

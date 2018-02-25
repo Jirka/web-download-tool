@@ -73,7 +73,9 @@ page.open(config.url, function(status){
             dashResult = JSON.parse(dashResult);
 
             //creates screens of widgets
-            renderWidgets(dashResult.coordinates, null);
+            if(config.generateWidetScreenshots !== false){
+                renderWidgets(dashResult.coordinates, null);
+            }
 
             //prints result xml to file
             fs.write(config.resultPath + '/' + config.service + '/' + config.service +'.xml', dashResult.xml, 'w');

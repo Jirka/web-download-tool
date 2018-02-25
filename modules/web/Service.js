@@ -1,7 +1,6 @@
-function Service( console) {
+function Service(console) {
 	//reference to top level widgets
 	this.widgets = [];
-
 
 	this.width = 0;
 	this.height = 0;
@@ -10,20 +9,20 @@ function Service( console) {
 	
 	/*
 	* 
-	*/ //maybe rename
-	this.execute = function(config){
+	*/
+	this.execute = function(config)
+	{
 
 		var dDocument = new Document(document);
 		var widgets = dDocument.findWidgets(config.selector);
 
 		this.width = config.width;
 		this.height = config.height; 
-		
-		//just for debug
-		console.log("selector::"+config.selector);
-		console.log('name::'+config.service);
-		console.log('types::'+config.types)
-		console.log('widgets count::'+widgets.length);
+		// //just for debug
+		// console.log("selector::"+config.selector);
+		// console.log('name::'+config.service);
+		// console.log('types::'+config.types)
+		// console.log('widgets count::'+widgets.length);
 
 		for(var i in widgets){
 			if(typeof widgets[i] === 'object'){	//try better check, for e.g. is instaceof html elem ,... 
@@ -54,7 +53,6 @@ function Service( console) {
 
 	this.getWidgetsCoordinates = function()
 	{
-		//split to two function getTopLevelWidgetsCoord & getSubWidgetsCoord
 		var coord = [];
 
 		for(var i in this.widgets){
