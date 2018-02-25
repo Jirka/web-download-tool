@@ -13,7 +13,8 @@ function Config(mockService, fs, console)
 	this.configServices = "config/services.json";
 
 	this.resultPath = "./result";
-	this.screenPath = "./screens/";
+	this.screenPath = "screens/";
+	this.fileName = null;
 
 	this.imageFormat = 'png';
 
@@ -189,6 +190,27 @@ function Config(mockService, fs, console)
 	    return suppoted;
 	}
 
+	/*
+	* @returns string path to image saving
+	*/
+	this.getResultImagePath = function(level)
+	{
+		var fileName = (this.fileName === null || this.fileName === '') ?  this.service : this.fileName;
+		var level = (level === null) ? '' : this.screenPath + level + '_';
+
+		return this.resultPath + '/' + level + fileName + '.' + this.imageFormat;
+	}
+
+	/*
+	* @returns string path to xml saving
+	*/
+	this.getResultXmlPath = function()
+	{
+		var fileName = (this.fileName === null || this.fileName === '') ?  this.service : this.fileName;
+
+		return this.resultPath + '/' + fileName + '.xml';
+	}
+
 	this.makeSerializable = function()
 	{
 		properties = {};
@@ -226,6 +248,8 @@ function Config(mockService, fs, console)
 		console.log('treatAsWebsite::'+this.treatAsWebsite);
 		console.log('generateWidetScreenshots::'+this.generateWidetScreenshots);
 		console.log('resultPath::'+this.resultPath);
+		console.log('fileName::'+this.fileName);
+		console.log('screenPath::'+this.screenPath);
 
 		console.log('-----------------CONFIG END--------------------');
 	}

@@ -3,7 +3,7 @@ var page = require('webpage').create();
 var system = require('system');
 var fs = require('fs');
 
-var validator = require('./external/validator/validate.js');
+// var validator = require('./external/validator/validate.js');
 // console.log(JSON.stringify(validator.validate({password: "bad"}, constraints)));
 
 //custom modules
@@ -40,8 +40,7 @@ page.open(config.url, function(status){
 
             //takes screenshot of whole site
             page.render(
-                //absolutePath + maybe getScreenPath from config -> this looks really bad
-                config.resultPath+'/'+config.service+'/'+config.service + '.' + config.imageFormat, 
+                config.getResultImagePath(null), 
                 {format: config.imageFormat, quality: '100'}
             );
 
@@ -78,7 +77,7 @@ page.open(config.url, function(status){
             }
 
             //prints result xml to file
-            fs.write(config.resultPath + '/' + config.service + '/' + config.service +'.xml', dashResult.xml, 'w');
+            fs.write(config.getResultXmlPath(), dashResult.xml, 'w');
             phantom.exit(0);
 
         }, config.timeout, config);
@@ -106,15 +105,13 @@ function renderWidgets(hierarchy, level)
             }
 
             page.render(
-                config.resultPath + '/' + config.service + '/'+ config.screenPath +
-                newLevel + '_' + config.service+'.'+config.imageFormat, 
+                config.getResultImagePath(newLevel), 
                 {format: config.imageFormat, quality: '100'} // constant to config
             );
 
 
             console.log(newLevel);
-            console.log(config.screenPath+config.service+'/'+
-                newLevel + '_' + config.service+i+'.'+config.imageFormat);
+            console.log(config.getResultImagePath(newLevel));
             console.log(hierarchy[i].coord);
         }
 
