@@ -1,0 +1,17 @@
+{
+	"height" : 1200,
+	"width" : 1200,
+	"marginX" : 100,
+	"marginY" : 100,
+	"timeout" : 6000,
+	"maxHierarchyLevel" : 2,
+	"widgetClasses" : [],
+	"imageFormat" : "jpg",
+	"treatAsWebsite" : false,
+	"generateWidetScreenshots" : true,
+	"resultPath" : null,
+	"fileName" : "",
+	"selector" : null,
+	"screenPath" : null
+	}
+}
