@@ -1,4 +1,4 @@
-function datapineWidget(console){
+function datapineWidget(console) {
 
 	this.document = new Document(document, console);
 	this.highcharts = new HighChartGraphs(console);
@@ -13,7 +13,7 @@ function datapineWidget(console){
 		//self instance --should be instance? widow[config.customWidget] ; new this.object();
 		this.self = window[config.customWidget];
 
-		if(level === 0){
+		if (level === 0) {
 			//because this widget is representing whole dashboard
 			this.widget.skip = true;
 			this.topLevelHtml = html.children;
@@ -33,11 +33,11 @@ function datapineWidget(console){
 	this.getType = function()
 	{
 		//to save time
-		if(this.widget.level === 0) return '';
+		if (this.widget.level === 0) return '';
 
 		var type = this.highcharts.getProperty('type');
 		console.log('type of widget:::'+type);
-		if(type === null){
+		if (type === null) {
 			//default type
 		}
 
@@ -46,9 +46,9 @@ function datapineWidget(console){
 	
 	this.getSubwidgets = function()
 	{
-		if(this.widget.level > 1) return []; //just for now
+		if (this.widget.level > 1) return []; //just for now
 
-		if(this.widget.level !== 0){
+		if (this.widget.level !== 0) {
 			var newHier = this.document.createNewHierarchySS(this.topLevelHtml, this.widget.html)
 		} 
 		else {
@@ -57,13 +57,13 @@ function datapineWidget(console){
 
 		var widgets = [];
 
-		for(var i in newHier['html'].children){
-			if(typeof newHier['html'].children[i] === 'object' &&
+		for (var i in newHier['html'].children) {
+			if (typeof newHier['html'].children[i] === 'object' &&
 				newHier['html'].children[i].hasAttribute('id')
 			) {
 				var id = newHier['html'].children[i].getAttribute('id');			
 
-				 if(typeof newHier['elems'][id] === 'object'){
+				 if (typeof newHier['elems'][id] === 'object') {
 				 	//check if id exists?
 					var widget = new this.self(console);
 					widget.init(

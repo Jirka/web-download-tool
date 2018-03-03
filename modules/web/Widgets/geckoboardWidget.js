@@ -1,4 +1,4 @@
-function geckoboardWidget(){
+function geckoboardWidget() {
 
 	//dependencies : Document
 
@@ -18,7 +18,7 @@ function geckoboardWidget(){
 		this.generalWidget.setType(this.getType());
 	}
 
-	this.getType = function(){
+	this.getType = function() {
 		var type =  this.generalWidget.document.findClassOnLowerLevel(
 			this.generalWidget.supportedTypes, 
 			this.generalWidget.html
@@ -28,7 +28,7 @@ function geckoboardWidget(){
 		return type; //return can be called directly
 	};
 	
-	this.getSubwidgets = function(){
+	this.getSubwidgets = function() {
 		
 	};
 

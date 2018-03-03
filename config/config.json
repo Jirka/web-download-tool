@@ -8,10 +8,9 @@
 	"widgetClasses" : [],
 	"imageFormat" : "jpg",
 	"treatAsWebsite" : false,
-	"generateWidetScreenshots" : true,
+	"generateWidetScreenshots" : false,
 	"resultPath" : null,
 	"fileName" : "",
 	"selector" : null,
 	"screenPath" : null
-	}
 }

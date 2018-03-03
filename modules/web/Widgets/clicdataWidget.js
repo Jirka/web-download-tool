@@ -1,4 +1,4 @@
-function clicdataWidget(console){
+function clicdataWidget(console) {
 
 	this.document = new Document(document, console);
 	this.highcharts = new HighChartGraphs(console);
@@ -29,9 +29,9 @@ function clicdataWidget(console){
 	* 
 	* @returns string type
 	*/
-	this.getType = function(){		
+	this.getType = function() {		
 		var type =this.highcharts.getProperty('type');
-		if(type === null){
+		if (type === null) {
 			type = this.document.findClassOnLowerLevel(
 				this.widget.supportedTypes,
 				this.widget.html
@@ -41,15 +41,15 @@ function clicdataWidget(console){
 		return "CHART";
 	};
 	
-	this.getSubwidgets = function(){
+	this.getSubwidgets = function() {
 		var subwidgets = [];
 
 		// should find out whether it is not in its bounds?
 		//think whether its logical to keep here, when I dont have any test cases, or let it be same for highcharts?
-		if(this.highcharts.hasSubwidgets()){
+		if (this.highcharts.hasSubwidgets()) {
 			console.log('has subwidgets');
 			var ids = this.highcharts.ids;
-			for(var i in ids){
+			for (var i in ids) {
 				var widget = new window[this.object](console);
 				widget.init(
 					this.highcharts.charts[ids[i]].obj,

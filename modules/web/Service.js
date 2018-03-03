@@ -1,31 +1,27 @@
 function Service(console) {
-	//reference to top level widgets
-	this.widgets = [];
+	this.widgets = []; //reference to top level widgets
 
+	//default properties
 	this.width = 0;
 	this.height = 0;
-
-	//could have flag for whether its going to be hierarchy or just one 
+	this.marginX = 0;
+	this.marginY = 0; 
 	
 	/*
 	* 
 	*/
 	this.execute = function(config)
 	{
-
 		var dDocument = new Document(document);
 		var widgets = dDocument.findWidgets(config.selector);
 
 		this.width = config.width;
 		this.height = config.height; 
-		// //just for debug
-		// console.log("selector::"+config.selector);
-		// console.log('name::'+config.service);
-		// console.log('types::'+config.types)
-		// console.log('widgets count::'+widgets.length);
+		this.marginX = config.marginX;
+		this.marginY = config.marginY;
 
-		for(var i in widgets){
-			if(typeof widgets[i] === 'object'){	//try better check, for e.g. is instaceof html elem ,... 
+		for (var i in widgets) {
+			if (typeof widgets[i] === 'object') { 
 				var widget = new window[config.customWidget](console);
 				widget.init(widgets[i], config, 0);
 				widget.execute();
@@ -35,14 +31,17 @@ function Service(console) {
 		}
 	};
 
-	this.generateDashboardXML = function(){
+	/*
+	* @returns string
+	*/
+	this.generateDashboardXML = function() {
 		var output = "<dashboard>";
-		output += "<x>0</x>";
-		output += "<y>0</y>";
+		output += "<x>"+this.marginX+"</x>";
+		output += "<y>"+this.marginY+"</y>";
 		output += "<width>"+this.width+"</width>";
 		output += "<height>"+this.height+"</height>";
 
-		for(var i in this.widgets){
+		for (var i in this.widgets) {
 			output += this.widgets[i].generateXML();
 		}
 
@@ -50,16 +49,18 @@ function Service(console) {
 		return output;
 	}
 
-
+	/*
+	* @retuns array
+	*/
 	this.getWidgetsCoordinates = function()
 	{
-		var coord = [];
+		var coordinates = [];
 
-		for(var i in this.widgets){
-			coord.push(this.widgets[i].getCoordinates());
+		for (var i in this.widgets) {
+			coordinates.push(this.widgets[i].getCoordinates());
 		}
 
-		return coord;
+		return coordinates;
 	}
 
 

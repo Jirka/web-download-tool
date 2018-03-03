@@ -1,4 +1,4 @@
-function showcaseWidget(){
+function showcaseWidget() {
 
 	this.widget = null;
 	this.self = null;
@@ -22,7 +22,7 @@ function showcaseWidget(){
 	/*
 	* @returns string type
 	*/
-	this.getType = function(){
+	this.getType = function() {
 		var type =  this.widget.document.findClassOnLowerLevel(
 			this.widget.supportedTypes, 
 			this.widget.html
@@ -32,7 +32,7 @@ function showcaseWidget(){
 		return type;
 	};
 	
-	this.getSubwidgets = function(){
+	this.getSubwidgets = function() {
 		
 	};
 

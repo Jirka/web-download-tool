@@ -37,7 +37,7 @@ function MockService()
 
 	this.get = function(name, index)
 	{
-		if(this.services[name] === undefined) return false;
+		if (this.services[name] === undefined) return false;
 
 		var service = {};
 		service.url = ((this.services[name].urls[index] !== undefined) ? this.services[name].urls[index] : this.services[name].urls[0]);

@@ -17,12 +17,13 @@ function websiteWidget()
 		this.generalWidget.setSubwidgets(this.getSubwidgets());
 	}
 	
-	this.getSubwidgets = function(){
+	this.getSubwidgets = function() 
+	{
 		var subwidgets = [];
-		if(this.generalWidget.level <= this.generalWidget.maxLevel){
+		if (this.generalWidget.level <= this.generalWidget.maxLevel) {
 			// console.log('level::'+this.generalWidget.level+' max::'+this.generalWidget.maxLevel);
-			for(var i in this.generalWidget.html.children){
-				if(typeof this.generalWidget.html.children[i] === 'object'){
+			for (var i in this.generalWidget.html.children) {
+				if (typeof this.generalWidget.html.children[i] === 'object') {
 					
 					var widget = new window[this.object](console);
 					console.log('creating subwidget'+this.generalWidget.html.children[i]);

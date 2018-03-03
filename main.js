@@ -13,16 +13,17 @@ var config = require('./modules/system/Config').create(mockService, fs,console);
 try{
     config.parseArguments(system.args);
     console.log(config.url);
-} catch(e){ // add type of exception|create new 
+} catch(e){
     console.log(e);
-    phantom.exit(0);
+    phantom.exit(1);
 }
 
+//for debug only
 config.print();
 
 // phantom.exit(0);
 
-//sets browsers window size
+//sets browser window size
 page.viewportSize = {width: config.width, height: config.height};
 
 page.open(config.url, function(status){
@@ -33,16 +34,13 @@ page.open(config.url, function(status){
             //modules injection inside website context
             for(var j in config.modules){
                 if(page.injectJs(config.modules[j]) === false){    
-                    console.log('ERROR: module '+config.modules[j]+' couldn\'t be injected');
-                    //thow and exit
+                    console.log('ERROR: module '+config.modules[j]+' could not be injected');
+                    phantom.exit(1);
                 }
             }
 
             //takes screenshot of whole site
-            page.render(
-                config.getResultImagePath(null), 
-                {format: config.imageFormat, quality: '100'}
-            );
+            page.render(config.getResultImagePath(null), {format: config.imageFormat, quality: this.imageQuality});
 
             //save content of page, just for debug
             // fs.write('./content/'+config.service+'/content', page.content, 'w');
@@ -51,13 +49,13 @@ page.open(config.url, function(status){
             serializableConfig = config.makeSerializable();
 
             //-------------------page processing start------------------------
-            var dashResult = page.evaluate(function(webConfig){
+            var dashResult = page.evaluate(function(config){
                 //result object
                 var dashOut = {};
 
                 //configurating Service with needed modules
                 var service = new Service(console);
-                service.execute(webConfig);
+                service.execute(config);
 
                 //creating result
                 dashOut.xml = service.generateDashboardXML();
@@ -83,19 +81,22 @@ page.open(config.url, function(status){
         }, config.timeout, config);
     }
     else{
-        console.log('ERROR: couldn\'t open the page '+config.url);
+        console.log('ERROR: could not open the page '+config.url);
         phantom.exit(1);
     }
 });
 
+/*
+* recursive function to generate screens of widgets and subwidgets
+*/
 function renderWidgets(hierarchy, level)
 {
     var newLevel = level;
 
-    for(var i = 0; i < hierarchy.length; i++){
+    for(var i = 0; i < hierarchy.length; i++) {
         if(hierarchy[i].coord !== null){
 
-            newLevel = (level !== null) ? level +'.' + (i+1) : i+1;
+            newLevel = (level !== null) ? level + '.' + (i+1) : i+1;
 
             page.clipRect = {
                 top: hierarchy[i].coord.y,
@@ -105,14 +106,9 @@ function renderWidgets(hierarchy, level)
             }
 
             page.render(
-                config.getResultImagePath(newLevel), 
-                {format: config.imageFormat, quality: '100'} // constant to config
+                config.getResultImagePath(newLevel),
+                {format: config.imageFormat, quality: this.imageQuality}
             );
-
-
-            console.log(newLevel);
-            console.log(config.getResultImagePath(newLevel));
-            console.log(hierarchy[i].coord);
         }
 
         renderWidgets(hierarchy[i].subCoord, newLevel);
@@ -139,4 +135,4 @@ page.onError = function(msg, trace) {
 
       console.error(msgStack.join('\n'));
 
-  };
+};

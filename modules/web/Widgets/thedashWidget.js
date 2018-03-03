@@ -1,6 +1,6 @@
-function thedashWidget(){
+function thedashWidget(console) {
 	this.widget = null;
-	this.document = new Document(console);
+	this.document = new Document(null, console);
 
 	this.init = function(html, config, level)
 	{

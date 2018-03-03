@@ -1,4 +1,4 @@
-function klipfolioWidget(console){
+function klipfolioWidget(console) {
 
 	this.json = null;
 	this.widget = null;
@@ -14,7 +14,7 @@ function klipfolioWidget(console){
 	{
 		this.widget = this.document.createAndInitWidget(html, config, level);
 
-		if(level === 0){
+		if (level === 0) {
 			this.json = this.getJson();
 		}
 
@@ -38,8 +38,8 @@ function klipfolioWidget(console){
 	*/
 	this.getJson = function()
 	{
-		for(var i in dashboard.klips){
-			if(("gridklip-" + dashboard.klips[i].id) === this.widget.html.id){
+		for (var i in dashboard.klips) {
+			if (("gridklip-" + dashboard.klips[i].id) === this.widget.html.id) {
 				return dashboard.klips[i].serialize();						
 			}
 		}
@@ -51,7 +51,7 @@ function klipfolioWidget(console){
 	*/
 	this.synchronizeHtml = function()
 	{
-		if(this.json !== null){
+		if (this.json !== null) {
 			this.id = this.json.id;
 
 			var html = document.getElementById(this.id);
@@ -60,10 +60,10 @@ function klipfolioWidget(console){
 		}
 	}
 
-	this.getType = function(){
+	this.getType = function() {
 		
 		//better check
-		if(this.json !== null){
+		if (this.json !== null) {
 			//this should be combination of klipfolio json and highcharts
 
 			// console.log('KlipTypes::'+this.findFirstLevelTypes(json.components, {}));
@@ -78,22 +78,22 @@ function klipfolioWidget(console){
 
 	}
 
-	this.getDetails = function(node){
+	this.getDetails = function(node) {
 		var types = [];
 		
-		if(node === undefined){
+		if (node === undefined) {
 			return [];
 		}
 
-		for(var i in node){
-			if(node[i].type === 'panel_grid'){
+		for (var i in node) {
+			if (node[i].type === 'panel_grid') {
 				var tmp = this.getDetails(node[i].components);
 				console.log(tmp);
-				if(tmp.length === 1){
+				if (tmp.length === 1) {
 					// tmp[0] === 
 				}
 			}
-			else if(node[i].type === 'input'){
+			else if (node[i].type === 'input') {
 				return (node[i].displayName === 'Drop-Down List') ? ['menu'] : ['input'];
 			}
 			else{
@@ -106,11 +106,11 @@ function klipfolioWidget(console){
 
 
 
-	this.getSubwidgets = function(node){		
+	this.getSubwidgets = function(node) {		
 		var widgets = [];
 
-		for(var i in node){
-			if(node[i].type !== 'panel_grid') continue;
+		for (var i in node) {
+			if (node[i].type !== 'panel_grid') continue;
 
 			var widget = new window[this.widget.customWidget](console);
 			widget.init(

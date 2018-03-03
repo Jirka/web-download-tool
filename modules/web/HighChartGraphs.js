@@ -1,24 +1,24 @@
-function HighChartGraphs(console){
+function HighChartGraphs(console) {
 	this.charts = {};
 	this.ids = [];
 
 	//wanted properties - what concreate service wants
 
-	this.init = function(highcharts, object){
-		if(highcharts === undefined){
+	this.init = function(highcharts, object) {
+		if (highcharts === undefined) {
 			// console.log('highchartgraphs undefined');
 			return;
 		}
 
 		doc = new Document(document, console);
 		
-		for(var i in highcharts.charts){
+		for (var i in highcharts.charts) {
 			var result = false;
 			var id = null;
 
 			//warning : can be undefined fiels of array
 			//replace with case?
-			if(highcharts.charts[i].options.chart.renderTo !== undefined){
+			if (highcharts.charts[i].options.chart.renderTo !== undefined) {
 	            id = highcharts.charts[i].options.chart.renderTo;
 	            result = doc.findIdOnLowerLevelS(id, object);
 	        }
@@ -27,7 +27,7 @@ function HighChartGraphs(console){
 	            result = doc.findIdOnLowerLevelS(id, object);
 	        }
 
-			if(result !== false){
+			if (result !== false) {
 	            this.ids.push(id);
 	            this.charts[id] = {'options' : highcharts.charts[i].options, 'obj' : result};
 	        }
@@ -51,7 +51,7 @@ function HighChartGraphs(console){
 	/*
 	* returns Highchart object|null
 	*/
-	this.getChart = function(id){
+	this.getChart = function(id) {
 		return (this.charts[id] !== undefined) ? this.charts[id] : null;
 	}
 
@@ -61,20 +61,20 @@ function HighChartGraphs(console){
 		return (this.charts[id] !== undefined) ? true : false;	
 	}
 
-	this.getProperty = function(property){
+	this.getProperty = function(property) {
 
 		var result = null;
 
 		try{
 
-			switch(property){
+			switch(property) {
 				case 'type':
 					var type = this.getType();
 					return type;
 					break;
 			}
 		}
-		catch(e){
+		catch(e) {
 			console.log('property doesnt exist');
 		}
 
@@ -90,24 +90,24 @@ function HighChartGraphs(console){
 		var result = [];
 		var types = {};
 
-		for(var i in this.ids){
+		for (var i in this.ids) {
 			
 			var o = this.charts[this.ids].options;
 			
-			if(o.chart.type !== undefined){
+			if (o.chart.type !== undefined) {
 
 				types[o.chart.type] = null;	
 				console.log('type is::::'+o.chart.type);
 			}
 
-			for(var j in o.series){
-				if(o.series[j].type !== undefined){
+			for (var j in o.series) {
+				if (o.series[j].type !== undefined) {
 					types[o.series[j].type] = null;
 				}
 			}
 
 			types = Object.keys(types);
-			if(types.length === 1){
+			if (types.length === 1) {
 				result.push(Object.keys(types)[0]);
 				//continue without next else?
 			}
@@ -115,18 +115,18 @@ function HighChartGraphs(console){
 				var supportedCombinations = [['line','column'],[]]; //as property
 				
 				//separate function
-				for(var k in supportedCombinations){
+				for (var k in supportedCombinations) {
 					var pass = true;
 					var tmpName = '';
-					for(var j in types){
+					for (var j in types) {
 						tmpName += types[j] + '_';
-						if(doc.includes(supportedCombinations[k], types[j]) === false){
+						if (doc.includes(supportedCombinations[k], types[j]) === false) {
 							pass = false;
 							break;
 						}
 					}
 
-					if(pass){
+					if (pass) {
 						result.push(tmpName);
 						//get name for combo 
 						// console.log('combo has passed');
@@ -146,15 +146,15 @@ function HighChartGraphs(console){
 		// type = Object.keys(type);
 		// console.log('result'+result);
 		var obj = {};
-		for(var i in result){
+		for (var i in result) {
 			obj[result[i]] = null;
 		}
 
-		if(Object.keys(obj).length === 1){
+		if (Object.keys(obj).length === 1) {
 			return result[0]
 		}
 
-		if(result.length === 0){
+		if (result.length === 0) {
 			return null;
 		}
 

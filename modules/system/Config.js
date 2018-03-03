@@ -1,6 +1,6 @@
 function Config(mockService, fs, console)
 {
-	this.url = null; //or "" ?
+	this.url = null;
 	this.service = null; 
 	this.selector = 'body'; //root
 	this.customWidget = 'websiteWidget';
@@ -9,6 +9,9 @@ function Config(mockService, fs, console)
 
 	this.width = 1000;
 	this.height = 1000;
+
+	this.marginX = 0;
+	this.marginY = 0;
 
 	this.configServices = "config/services.json";
 
@@ -23,6 +26,8 @@ function Config(mockService, fs, console)
 
 	this.generateWidetScreenshots = false;
 	this.treatAsWebsite = false;
+
+	this.imageQuality = 100; 
 
 	//getNext() -> transformation to fullpath+web+relativePath+.js
 	this.modules = [
@@ -41,14 +46,14 @@ function Config(mockService, fs, console)
 
 	this.parseArguments = function(args) 
 	{
-		if(args.length === 0){
+		if (args.length === 0) {
 			throw "No arguments supplied"; //add hint
 		}
 
 		//find custom config file if exists
 		var customConfigPath = null;
 		for (var i = 0; i < args.length; i++) {
-			if(args[i] === '-c') {
+			if (args[i] === '-c') {
 				var path = args[i+1];
 				customConfigPath = (path !== undefined) ? path : null;
 			}
@@ -68,17 +73,26 @@ function Config(mockService, fs, console)
 			this.url = args[1];
 		}
 
-		if(!this.isUrlValid()){
+		if (!this.isUrlValid()) {
 			throw "URL adress is not valid"; //add format example
 		}
 
 		this.service = this.parseUrl();
 		if (!this.isSupported(services)) { return; }
 
-		//overrides less important settings
+		//override less important settings
 		mergedConfiguration = (services[this.service] !== null) ? services[this.service] : {};  
-		for(var i in configuration) {
-			if(configuration[i] !== null){
+		for (var i in configuration) {
+			//temporary solution for script generator - FIX
+			if ((i === "height" && configuration[i] === 0) 
+				||  
+				(i === "width" && configuration[i] === 0)
+			) {
+				console.log('skipped');
+				continue;
+			}
+
+			if (configuration[i] !== null) {
 				mergedConfiguration[i] = configuration[i];
 			}
 		}
@@ -90,7 +104,7 @@ function Config(mockService, fs, console)
 	{
 		//validate data types
 
-		if(configuration === null){
+		if (configuration === null) {
 			return;
 		}
 
@@ -111,12 +125,12 @@ function Config(mockService, fs, console)
 	*/
 	this.readAndParseFile = function(path)
 	{
-		if(path === null) {
+		if (path === null) {
 			return null;
 		}
 
-		if(!fs.exists(path)) {
-			throw "Given file doesnt exist"; //specify which
+		if (!fs.exists(path)) {
+			throw "Given file doesnt exist " + path; //specify which
 		}
 
 		try{
@@ -149,19 +163,22 @@ function Config(mockService, fs, console)
 		var patt = /(http|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?/;
 		var pattern = new RegExp(patt);
 
-		if(!pattern.test(this.url)){
+		if (!pattern.test(this.url)) {
 			return false;
 		} 
 		
 		return true;
 	}
 
-
-	this.includes = function(elems, elem){
+	/*
+	* @returns bool
+	*/
+	this.includes = function(elems, elem)
+	{
 		var include = false;
 
-		for(var i in elems){
-			if(elems[i] === elem){
+		for (var i in elems) {
+			if (elems[i] === elem) {
 				include = true;
 			}
 		}
@@ -178,8 +195,8 @@ function Config(mockService, fs, console)
 		console.log(services);
 
 		var suppoted = false;
-	    for(var i in services){
-	        if(this.includes(serviceSplit, i)){
+	    for (var i in services) {
+	        if (this.includes(serviceSplit, i)) {
 	    	   console.log('supported! service :: '+ this.service);
 	        	this.service = i;
 	            suppoted = true;
@@ -211,6 +228,9 @@ function Config(mockService, fs, console)
 		return this.resultPath + '/' + fileName + '.xml';
 	}
 
+	/*
+	* @returns array of properties
+	*/
 	this.makeSerializable = function()
 	{
 		properties = {};
@@ -221,13 +241,15 @@ function Config(mockService, fs, console)
 	 	properties['types'] = this.types;
 	 	properties['map'] = this.map;
 
-	 	properties['width'] = this.with;
+	 	properties['width'] = this.width;
 	 	properties['height'] = this.height;
 	 	properties['imageFormat'] = this.imageFormat;
 	 	properties['customWidget'] = this.customWidget;
 	 	properties['maxHierarchyLevel'] = this.maxHierarchyLevel;
 	 	properties['generateWidetScreenshots'] = this.generateWidetScreenshots;
 	 	properties['treatAsWebsite'] = this.treatAsWebsite; //need to export?
+	 	properties['marginX'] = this.marginX;
+	 	properties['marginY'] = this.marginY;
 
 	 	return properties;
 	}
@@ -250,12 +272,14 @@ function Config(mockService, fs, console)
 		console.log('resultPath::'+this.resultPath);
 		console.log('fileName::'+this.fileName);
 		console.log('screenPath::'+this.screenPath);
+		console.log('marginX::'+this.marginX);
+		console.log('marginY::'+this.marginY);
 
 		console.log('-----------------CONFIG END--------------------');
 	}
 
 }
 
-exports.create = function(mockService, fs, console){
+exports.create = function(mockService, fs, console) {
     return new Config(mockService, fs, console);
 };
