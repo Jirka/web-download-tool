@@ -6,9 +6,11 @@ var fs = require('fs');
 // var validator = require('./external/validator/validate.js');
 // console.log(JSON.stringify(validator.validate({password: "bad"}, constraints)));
 
+var configPath = setAbsolutePathFromConfiguration(fs, system.args);
+
 //custom modules
 var mockService = require('./modules/system/MockService').create(); //for testing only
-var config = require('./modules/system/Config').create(mockService, fs,console);
+var config = require('./modules/system/Config').create(fs, configPath, mockService, console);
 
 try{
     config.parseArguments(system.args);
@@ -115,6 +117,39 @@ function renderWidgets(hierarchy, level)
     }
 }
 
+
+/*
+* @returns string configuration path|null
+*/
+function setAbsolutePathFromConfiguration(fs, args)
+{
+    var customConfigPath = null;
+    var cFlag = false;
+    for (var i = 0; i < args.length; i++) {
+        if (args[i] === '-c') {
+            var path = args[i+1];
+            cFlag = true;
+            customConfigPath = (path !== undefined) ? path : null;
+        }
+    }
+
+    try {
+        var config = JSON.parse(fs.read(path));
+        if (config['absolutePath'] !== undefined) {
+            var status = fs.changeWorkingDirectory(config['absolutePath']);
+            if (!status) {
+                console.log('Warning: absolutePath could not be changed from directory');
+            }
+        }
+    } catch(e) {
+        if(cFlag){
+            console.log('ERROR: Problem with file given in -c switch, check if file exist or has proper JSON syntax');
+            phantom.exit(1);
+        }
+    }
+
+    return customConfigPath;
+}
 
 //for debug purposes only 
 page.onConsoleMessage = function(msg){

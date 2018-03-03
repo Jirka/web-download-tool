@@ -1,4 +1,4 @@
-function Config(mockService, fs, console)
+function Config(fs, configPath, mockService, console)
 {
 	this.url = null;
 	this.service = null; 
@@ -50,18 +50,9 @@ function Config(mockService, fs, console)
 			throw "No arguments supplied"; //add hint
 		}
 
-		//find custom config file if exists
-		var customConfigPath = null;
-		for (var i = 0; i < args.length; i++) {
-			if (args[i] === '-c') {
-				var path = args[i+1];
-				customConfigPath = (path !== undefined) ? path : null;
-			}
-		}
-
 		//read config files
 		var services = this.readAndParseFile(this.configServices);
-		var configuration = this.readAndParseFile(customConfigPath);
+		var configuration = this.readAndParseFile(configPath);
 
 		if (args[1] === 'mock') {
 			//just for testing purposes
@@ -280,6 +271,6 @@ function Config(mockService, fs, console)
 
 }
 
-exports.create = function(mockService, fs, console) {
-    return new Config(mockService, fs, console);
+exports.create = function(fs, configPath, mockService, console) {
+    return new Config(fs, configPath, mockService, console);
 };

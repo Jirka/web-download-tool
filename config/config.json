@@ -12,5 +12,6 @@
 	"resultPath" : null,
 	"fileName" : "",
 	"selector" : null,
-	"screenPath" : null
+	"screenPath" : null,
+	"absolutePath" : null
 }
