@@ -6,11 +6,11 @@ var fs = require('fs');
 // var validator = require('./external/validator/validate.js');
 // console.log(JSON.stringify(validator.validate({password: "bad"}, constraints)));
 
-var configPath = setAbsolutePathFromConfiguration(fs, system.args);
+setAbsolutePathFromArguments(fs, system.args);
 
 //custom modules
 var mockService = require('./modules/system/MockService').create(); //for testing only
-var config = require('./modules/system/Config').create(fs, configPath, mockService, console);
+var config = require('./modules/system/Config').create(fs, mockService, console);
 
 try{
     config.parseArguments(system.args);
@@ -119,36 +119,24 @@ function renderWidgets(hierarchy, level)
 
 
 /*
-* @returns string configuration path|null
+* 
 */
-function setAbsolutePathFromConfiguration(fs, args)
+function setAbsolutePathFromArguments(fs, args)
 {
-    var customConfigPath = null;
-    var cFlag = false;
+    var absolutePath = null;
     for (var i = 0; i < args.length; i++) {
-        if (args[i] === '-c') {
+        if (args[i] === '-a') {
             var path = args[i+1];
-            cFlag = true;
-            customConfigPath = (path !== undefined) ? path : null;
+            absolutePath = (path !== undefined) ? path : null;
         }
     }
 
-    try {
-        var config = JSON.parse(fs.read(path));
-        if (config['absolutePath'] !== undefined) {
-            var status = fs.changeWorkingDirectory(config['absolutePath']);
-            if (!status) {
-                console.log('Warning: absolutePath could not be changed from directory');
-            }
-        }
-    } catch(e) {
-        if(cFlag){
-            console.log('ERROR: Problem with file given in -c switch, check if file exist or has proper JSON syntax');
-            phantom.exit(1);
+    if (absolutePath !== null) {
+        var status = fs.changeWorkingDirectory(absolutePath);
+        if (!status) {
+            console.log('Warning: absolutePath could not be changed from directory');
         }
     }
-
-    return customConfigPath;
 }
 
 //for debug purposes only 
