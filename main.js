@@ -9,8 +9,7 @@ var fs = require('fs');
 setAbsolutePathFromArguments(fs, system.args);
 
 //custom modules
-var mockService = require('./modules/system/MockService').create(); //for testing only
-var config = require('./modules/system/Config').create(fs, mockService, console);
+var config = require('./modules/system/Config').create(fs, console);
 
 try{
     config.parseArguments(system.args);

@@ -13,5 +13,6 @@
 	"fileName" : "",
 	"selector" : null,
 	"screenPath" : null,
-	"absolutePath" : null
+	"absolutePath" : null,
+	"url" : "http://google.com"
 }

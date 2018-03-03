@@ -1,4 +1,4 @@
-function Config(fs, mockService, console)
+function Config(fs, console)
 {
 	this.url = null;
 	this.service = null; 
@@ -13,8 +13,6 @@ function Config(fs, mockService, console)
 	this.marginX = 0;
 	this.marginY = 0;
 
-	this.configServices = "config/services.json";
-
 	this.resultPath = "./result";
 	this.screenPath = "screens/";
 	this.fileName = null;
@@ -28,6 +26,11 @@ function Config(fs, mockService, console)
 	this.treatAsWebsite = false;
 
 	this.imageQuality = 100; 
+
+	//down protected values
+	this.configServices = "config/services.json"; //??
+
+	this.isServiceSupported = false;
 
 	//getNext() -> transformation to fullpath+web+relativePath+.js
 	this.modules = [
@@ -63,28 +66,18 @@ function Config(fs, mockService, console)
 		var services = this.readAndParseFile(this.configServices);
 		var configuration = this.readAndParseFile(customConfigPath);
 
-		if (args[1] === 'mock') {
-			//just for testing purposes
-			this.url = mockService.get(
-				(args[2] !== undefined) ? args[2] : 'test', 
-				(args[3] !== undefined) ? args[3] : 0
-			);
-		} else {
-			this.url = args[1];
-		}
-
+		this.url = (configuration !== null && configuration['url'] !== undefined) ? configuration['url'] : args[1];
 		if (!this.isUrlValid()) {
 			throw "URL adress is not valid"; //add format example
 		}
 
 		this.service = this.parseUrl();
-		if (!this.isSupported(services)) { return; }
 
 		//override less important settings
-		mergedConfiguration = (services[this.service] !== null) ? services[this.service] : {};  
+		mergedConfiguration = (services[this.service] !== undefined) ? services[this.service] : {};
 		for (var i in configuration) {
 			//temporary solution for script generator - FIX
-			if ((i === "height" && configuration[i] === 0) 
+			if ((i === "height" && configuration[i] === 0)
 				||  
 				(i === "width" && configuration[i] === 0)
 			) {
@@ -97,6 +90,8 @@ function Config(fs, mockService, console)
 			}
 		}
 
+		this.isServiceSupported = this.isSupported(services);
+		
 		this.setProperties(mergedConfiguration);
 	}
 
@@ -112,7 +107,9 @@ function Config(fs, mockService, console)
 			this[i] = configuration[i];
 		}
 
-		this.customWidget = this.service + 'Widget';
+		if (this.isServiceSupported) {
+			this.customWidget = this.service + 'Widget';
+		}
 	}
 
 	this.get = function(value)
@@ -274,12 +271,13 @@ function Config(fs, mockService, console)
 		console.log('screenPath::'+this.screenPath);
 		console.log('marginX::'+this.marginX);
 		console.log('marginY::'+this.marginY);
+		console.log('customWidget' + this.customWidget);
 
 		console.log('-----------------CONFIG END--------------------');
 	}
 
 }
 
-exports.create = function(fs, mockService, console) {
-    return new Config(fs, mockService, console);
+exports.create = function(fs, console) {
+    return new Config(fs, console);
 };
