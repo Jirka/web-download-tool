@@ -31,6 +31,7 @@ function Config(fs, console)
 	this.configServices = "config/services.json"; //??
 
 	this.isServiceSupported = false;
+	this.wrap = false;
 
 	//getNext() -> transformation to fullpath+web+relativePath+.js
 	this.modules = [
@@ -73,6 +74,8 @@ function Config(fs, console)
 
 		this.service = this.parseUrl();
 
+		this.isServiceSupported = this.isSupported(services);
+
 		//override less important settings
 		mergedConfiguration = (services[this.service] !== undefined) ? services[this.service] : {};
 		for (var i in configuration) {
@@ -90,7 +93,6 @@ function Config(fs, console)
 			}
 		}
 
-		this.isServiceSupported = this.isSupported(services);
 		
 		this.setProperties(mergedConfiguration);
 	}
@@ -247,6 +249,7 @@ function Config(fs, console)
 	 	properties['treatAsWebsite'] = this.treatAsWebsite; //need to export?
 	 	properties['marginX'] = this.marginX;
 	 	properties['marginY'] = this.marginY;
+	 	properties['wrap'] = this.wrap;
 
 	 	return properties;
 	}
@@ -272,6 +275,7 @@ function Config(fs, console)
 		console.log('marginX::'+this.marginX);
 		console.log('marginY::'+this.marginY);
 		console.log('customWidget' + this.customWidget);
+		console.log('wrap' + this.wrap);
 
 		console.log('-----------------CONFIG END--------------------');
 	}

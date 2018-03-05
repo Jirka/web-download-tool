@@ -61,6 +61,15 @@ function Widget(console) {
 		return result;
 	};
 	
+	this.subtractCoordinates = function(minX, minY)
+	{
+		this.coordinates.x = this.coordinates.x - minX;
+		this.coordinates.y = this.coordinates.y - minY;
+
+		for (var i in this.subwidgets) {
+			this.subwidgets[i].subtractCoordinates(minX, minY);
+		}
+	}
 
 	this.setType = function(type) 
 	{

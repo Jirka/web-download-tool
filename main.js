@@ -58,7 +58,11 @@ page.open(config.url, function(status){
                 var service = new Service(console);
                 service.execute(config);
 
+                if(config.wrap){
+                    dashOut.newWindowSize = service.getNewWindowSize();
+                }
                 //creating result
+                
                 dashOut.xml = service.generateDashboardXML();
                 dashOut.coordinates = service.getWidgetsCoordinates();
 
@@ -69,6 +73,19 @@ page.open(config.url, function(status){
 
             //deserialization of result
             dashResult = JSON.parse(dashResult);
+
+            if(config.wrap){
+                page.clipRect = {
+                    top: dashResult.newWindowSize.y,
+                    left: dashResult.newWindowSize.x,
+                    width : dashResult.newWindowSize.width,
+                    height: dashResult.newWindowSize.height
+                }
+                
+                page.viewportSize = {width: dashResult.newWindowSize, height: dashResult.newWindowSize.height};
+            }
+
+            page.render(config.getResultImagePath(null), {format: config.imageFormat, quality: this.imageQuality});
 
             //creates screens of widgets
             if(config.generateWidetScreenshots !== false){

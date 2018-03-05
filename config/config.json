@@ -14,5 +14,6 @@
 	"selector" : null,
 	"screenPath" : null,
 	"absolutePath" : null,
-	"url" : "http://google.com"
+	"url" : "http://google.com",
+	"wrap" : true
 }
