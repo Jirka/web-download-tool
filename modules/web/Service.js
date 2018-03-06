@@ -15,6 +15,7 @@ function Service(console) {
 		var dDocument = new Document(document);
 		var widgets = dDocument.findWidgets(config.selector);
 
+
 		this.width = config.width;
 		this.height = config.height; 
 		this.marginX = config.marginX;
@@ -26,7 +27,6 @@ function Service(console) {
 				widget.init(widgets[i], config, 0);
 				widget.execute();
 				this.widgets.push(widget.getWidget());
-
 			}
 		}
 	};
@@ -56,11 +56,14 @@ function Service(console) {
 
 		for (var i in this.widgets) {
 			var coordinates = this.widgets[i].getCoordinates();
-			if(coordinates.coord !== null){
-				minX = Math.min(coordinates.coord.x, minX);
-				minY = Math.min(coordinates.coord.y, minY);
-				maxX = Math.max(coordinates.coord.x + coordinates.coord.width, maxX);
-				maxY = Math.max(coordinates.coord.y + coordinates.coord.height, maxY);
+			coord = (coordinates.coord === null) ? coordinates.subCoord : [coordinates];
+
+			for(var j in coord) {
+				console.log(coord[j].coord.x + " " + coord[j].coord.y);
+				minX = Math.min(coord[j].coord.x, minX);
+				minY = Math.min(coord[j].coord.y, minY);
+				maxX = Math.max(coord[j].coord.x + coord[j].coord.width, maxX);
+				maxY = Math.max(coord[j].coord.y + coord[j].coord.height, maxY);
 			}
 		}
 
@@ -69,9 +72,7 @@ function Service(console) {
 
 		this.recalculateCoordinates(minX, minY);
 
-		console.log(minX + " " + minY + " " + maxX + " " + maxY +" "+ this.height +" " + this.width);
 		return {width : this.width, height : this.height, x : minX, y : minY};
-
 	}
 
 
@@ -95,6 +96,4 @@ function Service(console) {
 
 		return coordinates;
 	}
-
-
 }

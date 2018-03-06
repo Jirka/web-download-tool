@@ -80,7 +80,8 @@ function Config(fs, console)
 		mergedConfiguration = (services[this.service] !== undefined) ? services[this.service] : {};
 		for (var i in configuration) {
 			//temporary solution for script generator - FIX
-			if ((i === "height" && configuration[i] === 0)
+			if (
+				(i === "height" && configuration[i] === 0)
 				||  
 				(i === "width" && configuration[i] === 0)
 			) {
@@ -191,12 +192,12 @@ function Config(fs, console)
 	this.isSupported = function(services)
 	{
 		serviceSplit = this.service.split('.');
-		console.log(services);
+		// console.log(services);
 
 		var suppoted = false;
 	    for (var i in services) {
 	        if (this.includes(serviceSplit, i)) {
-	    	   console.log('supported! service :: '+ this.service);
+	    	   console.log('supported service :: '+ this.service);
 	        	this.service = i;
 	            suppoted = true;
 	            break;
@@ -274,8 +275,8 @@ function Config(fs, console)
 		console.log('screenPath::'+this.screenPath);
 		console.log('marginX::'+this.marginX);
 		console.log('marginY::'+this.marginY);
-		console.log('customWidget' + this.customWidget);
-		console.log('wrap' + this.wrap);
+		console.log('customWidget::' + this.customWidget);
+		console.log('wrap::' + this.wrap);
 
 		console.log('-----------------CONFIG END--------------------');
 	}

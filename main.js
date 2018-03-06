@@ -29,7 +29,6 @@ page.viewportSize = {width: config.width, height: config.height};
 
 page.open(config.url, function(status){
     if(status === 'success'){
-
         setTimeout(function(config){
 
             //modules injection inside website context
@@ -59,7 +58,7 @@ page.open(config.url, function(status){
                 service.execute(config);
 
                 if(config.wrap){
-                    dashOut.newWindowSize = service.getNewWindowSize();
+                    dashOut.newWindowSize = service.getNewWindowSize(null);
                 }
                 //creating result
                 
@@ -81,7 +80,7 @@ page.open(config.url, function(status){
                     width : dashResult.newWindowSize.width,
                     height: dashResult.newWindowSize.height
                 }
-                
+
                 page.viewportSize = {width: dashResult.newWindowSize, height: dashResult.newWindowSize.height};
             }
 
@@ -157,7 +156,7 @@ function setAbsolutePathFromArguments(fs, args)
 
 //for debug purposes only 
 page.onConsoleMessage = function(msg){
-      console.log(msg)
+      // console.log(msg)
 }
 
 //error handleing

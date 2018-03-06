@@ -63,16 +63,16 @@ function klipfolioWidget(console) {
 	this.getType = function() {
 		
 		//better check
-		if (this.json !== null) {
-			//this should be combination of klipfolio json and highcharts
+		// if (this.json !== null) {
+		// 	//this should be combination of klipfolio json and highcharts
 
-			// console.log('KlipTypes::'+this.findFirstLevelTypes(json.components, {}));
-			//return this.tyype(json.components, {});
-			// console.log('numberOfComponents::'+this.json.components.length);
-			console.log("---------------------START-----------------------");
-			return this.getDetails(this.json.components);
+		// 	// console.log('KlipTypes::'+this.findFirstLevelTypes(json.components, {}));
+		// 	//return this.tyype(json.components, {});
+		// 	// console.log('numberOfComponents::'+this.json.components.length);
+		// 	console.log("---------------------START-----------------------");
+		// 	return this.getDetails(this.json.components);
 
-		}
+		// }
 
 		return 'CHART';
 
