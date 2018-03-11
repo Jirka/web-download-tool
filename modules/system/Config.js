@@ -66,14 +66,17 @@ function Config(fs, console)
 					break;
 				case '-w':
 				case '--w':
+				case '-url':
 					this.url = this.getValue(value);
 					break;
 				case '-r':
 				case '--r':
+				case '-result':
 					this.resultPath = this.getValue(value);
 					break;
 				case '-s':
 				case '--s':
+				case 'selector':
 					this.selector = this.getValue(value);
 					break;
 				default:
