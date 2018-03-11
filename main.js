@@ -22,7 +22,7 @@ try{
 //for debug only
 config.print();
 
-// phantom.exit(0);
+phantom.exit(0);
 
 //sets browser window size
 page.viewportSize = {width: config.width, height: config.height};
@@ -156,7 +156,7 @@ function setAbsolutePathFromArguments(fs, args)
 
 //for debug purposes only 
 page.onConsoleMessage = function(msg){
-      // console.log(msg)
+      console.log(msg);
 }
 
 //error handleing

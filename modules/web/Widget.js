@@ -5,7 +5,7 @@ function Widget(console) {
 	this.json = null; //only selected services
 	this.coordinates = null;
 	this.supportedTypes = [];
-	this.maxLevel = 2;
+	this.maxLevel = 1;
 	this.config = null; 
 	this.exernalService = null;
 
@@ -14,16 +14,13 @@ function Widget(console) {
 
 	this.subwidgets = []; //[self]
 
-	//array of elements included in xml output, for website it will exclude type
-
-	//put this logic to widgetfactory
-								//pass just one value, if not more needed
 	this.init = function(html, config, level)
 	{
 		this.html = html;
 		this.supportedTypes = config.types; 
 		this.level = level;
-		// this.maxLevel = config.maxLevel;
+		this.maxLevel = config.maxHierarchyLevel;
+		console.log('max level :: ' + config.maxHierarchyLevel);
 		this.config = config;
 	}
 
@@ -35,12 +32,14 @@ function Widget(console) {
 			var coordinates = this.html.getBoundingClientRect();
 		}
 		
-		//should this translate method be in Document? maybe somthing like private in here, if it is not used by anyone else
 		this.coordinates = this.transform(coordinates);
-
 		
-		//should it be here?
-		if (this.coordinates.width === 0 || this.coordinates.height === 0) {
+		if (
+			this.coordinates.width <= 0 
+			|| this.coordinates.height <= 0
+			|| this.coordinates.x <= 0
+			|| this.coordinates.y <= 0
+		) {
 			this.skip = true;
 		}
 	}
@@ -55,14 +54,15 @@ function Widget(console) {
 		}
 
 		//setting margin from configuration
-		result['x'] -= this.config.marginX;
-		result['y'] -= this.config.marginY;
+		result['xx'] = result['x'] - this.config.marginX;
+		result['yy'] = result['y'] - this.config.marginY;
 
 		return result;
 	};
 	
 	this.subtractCoordinates = function(minX, minY)
 	{
+		console.log('subtract called !!!!!')
 		this.coordinates.x = this.coordinates.x - minX;
 		this.coordinates.y = this.coordinates.y - minY;
 
@@ -129,20 +129,19 @@ function Widget(console) {
 	*/
 	this.generateXML = function()
 	{
+		console.log('generating xml')
 		var output = '';
 
 		if (!this.skip) {
+			console.log('and I am not skipped'); 	
 			output +=  '<graphicalElement>';
-			output += "<x>" + this.coordinates.x + '</x>';
-			output += "<y>" + this.coordinates.y + '</y>';		
+			output += "<x>" + this.coordinates.xx + '</x>';
+			output += "<y>" + this.coordinates.yy + '</y>';		
 			output += "<width>" + this.coordinates.width + '</width>';		
 			output += "<height>" + this.coordinates.height + '</height>';
 			output += "<type>" + this.type + "</type>";
 		}	
 
-			//missing type - is it always gonna be here? even when raw web
-
-			// console.log("num of subwidgets" + this.subwidgets.length );
 			for (var i in this.subwidgets) {
 				output += this.subwidgets[i].generateXML();
 			}

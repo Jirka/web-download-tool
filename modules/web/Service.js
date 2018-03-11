@@ -15,14 +15,13 @@ function Service(console) {
 		var dDocument = new Document(document);
 		var widgets = dDocument.findWidgets(config.selector);
 
-
 		this.width = config.width;
 		this.height = config.height; 
 		this.marginX = config.marginX;
 		this.marginY = config.marginY;
 
 		for (var i in widgets) {
-			if (typeof widgets[i] === 'object') { 
+			if (typeof widgets[i] === 'object') {
 				var widget = new window[config.customWidget](console);
 				widget.init(widgets[i], config, 0);
 				widget.execute();

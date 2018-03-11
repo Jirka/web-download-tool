@@ -103,7 +103,7 @@ function Document(document, console) {		//probably separate modul, element
 	this.createNewHierarchy = function(elems) {
 		var reconfig = [];
 		var elemsTmp = {};
-				
+		
 		//if (parent === null) continue as now
 				
 		console.log('input::'+elems);

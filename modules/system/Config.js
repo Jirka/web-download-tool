@@ -6,6 +6,7 @@ function Config(fs, console)
 	this.customWidget = 'websiteWidget';
 	this.types = [];
 	this.map = {};
+	this.filename = null;
 
 	this.width = 1000;
 	this.height = 1000;
@@ -13,7 +14,7 @@ function Config(fs, console)
 	this.marginX = 0;
 	this.marginY = 0;
 
-	this.resultPath = "./result";
+	this.resultPath = "result";
 	this.screenPath = "screens/";
 	this.fileName = null;
 
@@ -57,9 +58,26 @@ function Config(fs, console)
 		//find custom config file if exists
 		var customConfigPath = null;
 		for (var i = 0; i < args.length; i++) {
-			if (args[i] === '-c') {
-				var path = args[i+1];
-				customConfigPath = (path !== undefined) ? path : null;
+			var value = args[i+1];
+			switch(args[i]) {
+				case '-c':
+				case '--c':
+					customConfigPath = this.getValue(value);
+					break;
+				case '-w':
+				case '--w':
+					this.url = this.getValue(value);
+					break;
+				case '-r':
+				case '--r':
+					this.resultPath = this.getValue(value);
+					break;
+				case '-s':
+				case '--s':
+					this.selector = this.getValue(value);
+					break;
+				default:
+					break;
 			}
 		}
 
@@ -67,7 +85,7 @@ function Config(fs, console)
 		var services = this.readAndParseFile(this.configServices);
 		var configuration = this.readAndParseFile(customConfigPath);
 
-		this.url = (configuration !== null && configuration['url'] !== undefined) ? configuration['url'] : args[1];
+		this.url = (configuration !== null && configuration['url'] !== undefined) ? configuration['url'] : this.url;
 		if (!this.isUrlValid()) {
 			throw "URL adress is not valid"; //add format example
 		}
@@ -110,12 +128,12 @@ function Config(fs, console)
 			this[i] = configuration[i];
 		}
 
-		if (this.isServiceSupported) {
+		if (this.isServiceSupported && !this.treatAsWebsite) {
 			this.customWidget = this.service + 'Widget';
 		}
 	}
 
-	this.get = function(value)
+	this.getValue = function(value)
 	{
 		return (value !== undefined) ? value : null; 
 	}
@@ -277,6 +295,7 @@ function Config(fs, console)
 		console.log('marginY::'+this.marginY);
 		console.log('customWidget::' + this.customWidget);
 		console.log('wrap::' + this.wrap);
+		console.log('absoluteResultPath::' + fs.workingDirectory + '/' + this.resultPath );
 
 		console.log('-----------------CONFIG END--------------------');
 	}
