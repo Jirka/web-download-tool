@@ -29,10 +29,11 @@ function Config(fs, console)
 	this.imageQuality = 100; 
 
 	//down protected values
-	this.configServices = "config/services.json"; //??
+	this.configServices = "config/services.json";
 
 	this.isServiceSupported = false;
 	this.wrap = false;
+	this.onlyScreen = false;
 
 	//getNext() -> transformation to fullpath+web+relativePath+.js
 	this.modules = [
@@ -100,29 +101,40 @@ function Config(fs, console)
 		//override less important settings
 		mergedConfiguration = (services[this.service] !== undefined) ? services[this.service] : {};
 		for (var i in configuration) {
-			//temporary solution for script generator - FIX
-			if (
-				(i === "height" && configuration[i] === 0)
-				||  
-				(i === "width" && configuration[i] === 0)
-			) {
-				console.log('skipped');
-				continue;
-			}
-
-			if (configuration[i] !== null) {
+			if (this.valideProperties(i, configuration[i])) {
 				mergedConfiguration[i] = configuration[i];
 			}
 		}
 
-		
 		this.setProperties(mergedConfiguration);
+	}
+
+	/*
+	* @returns bool
+	*/
+	this.valideProperties = function(key, value)
+	{
+		var isValid = (value !== null); // || undefined ?
+
+		switch(key) {
+			case 'height':
+			case 'width' :
+				isValid = (value !== 0 && !isNaN(value));
+				break;
+			case 'isServiceSupported':
+			case 'configServices':
+			case 'modules':
+				isValid = false;
+			default:
+				isValid = false;
+				break;
+		}
+
+		return isValid;
 	}
 
 	this.setProperties = function(configuration)
 	{
-		//validate data types
-
 		if (configuration === null) {
 			return;
 		}
@@ -261,7 +273,6 @@ function Config(fs, console)
 		properties['selector'] = this.selector;
 	 	properties['types'] = this.types;
 	 	properties['map'] = this.map;
-
 	 	properties['width'] = this.width;
 	 	properties['height'] = this.height;
 	 	properties['imageFormat'] = this.imageFormat;
@@ -272,6 +283,7 @@ function Config(fs, console)
 	 	properties['marginX'] = this.marginX;
 	 	properties['marginY'] = this.marginY;
 	 	properties['wrap'] = this.wrap;
+	 	properties['onlyScreen'] = this.onlyScreen;
 
 	 	return properties;
 	}
@@ -298,8 +310,8 @@ function Config(fs, console)
 		console.log('marginY::'+this.marginY);
 		console.log('customWidget::' + this.customWidget);
 		console.log('wrap::' + this.wrap);
+		console.log('onlyScreen::' + this.onlyScreen);
 		console.log('absoluteResultPath::' + fs.workingDirectory + '/' + this.resultPath );
-
 		console.log('-----------------CONFIG END--------------------');
 	}
 

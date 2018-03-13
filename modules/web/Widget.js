@@ -20,10 +20,12 @@ function Widget(console) {
 		this.supportedTypes = config.types; 
 		this.level = level;
 		this.maxLevel = config.maxHierarchyLevel;
-		console.log('max level :: ' + config.maxHierarchyLevel);
 		this.config = config;
 	}
 
+	/*
+	* 
+	*/
 	this.setCoordinates = function()
 	{
 		var coordinates = {'x' : 0, 'y' : 0, 'left' : 0, 'top' : 0};
@@ -33,17 +35,49 @@ function Widget(console) {
 		}
 		
 		this.coordinates = this.transform(coordinates);
-		
-		if (
-			this.coordinates.width <= 0 
-			|| this.coordinates.height <= 0
-			|| this.coordinates.x <= 0
-			|| this.coordinates.y <= 0
-		) {
+
+		//setting margin from configuration
+		this.coordinates['xx'] = this.coordinates['x'] - this.config.marginX;
+		this.coordinates['yy'] = this.coordinates['y'] - this.config.marginY;
+
+		if (this.coordinates.width <= 0 || this.coordinates.height <= 0 || this.coordinates.x <= 0 || this.coordinates.y <= 0) {
 			this.skip = true;
 		}
 	}
 
+	this.setType = function(type) 
+	{
+		this.type = this.translateType(type);
+	};
+
+	this.setSubwidgets = function(subwidgets) 
+	{
+		this.subwidgets = subwidgets;
+		this.removeSameSubwidgets();		
+	}
+	
+	/*
+	* @returns object of coordinates of widget and subwidgets
+	*/
+	this.getCoordinates = function()
+	{
+		var groupCoordinates = {'widget' : null, 'subCoord' : []};
+
+		if (!this.skip) {
+			groupCoordinates['coord'] = this.coordinates;
+		}
+
+		for (var i in this.subwidgets) {
+			var subCoordinates = this.subwidgets[i].getCoordinates();
+			groupCoordinates['subCoord'].push(subCoordinates);
+		}
+
+		return groupCoordinates;
+	}
+
+	/*
+	* picks needed properties of DOM object and transforms them into proper naming
+	*/
 	this.transform = function(coordinates)
 	{
 		var mapping = {'left' : 'x', 'top' : 'y', 'width' : 'width', 'height' : 'height'};
@@ -53,16 +87,14 @@ function Widget(console) {
 			result[mapping[i]] = Math.round(coordinates[i]);
 		}
 
-		//setting margin from configuration
-		result['xx'] = result['x'] - this.config.marginX;
-		result['yy'] = result['y'] - this.config.marginY;
-
 		return result;
 	};
 	
+	/*
+	*
+	*/
 	this.subtractCoordinates = function(minX, minY)
 	{
-		console.log('subtract called !!!!!')
 		this.coordinates.x = this.coordinates.x - minX;
 		this.coordinates.y = this.coordinates.y - minY;
 
@@ -71,12 +103,11 @@ function Widget(console) {
 		}
 	}
 
-	this.setType = function(type) 
-	{
-		this.type = this.translateType(type);
-	};
-
-	//if mapping is not found original type is returned 
+	/*
+	* translates type gotten from website to mapping from configuration 
+	* if mapping is not found original type is returned
+	* @returns string type
+	*/
 	this.translateType = function(type)
 	{
 		for (var i in this.config.map) {
@@ -88,12 +119,9 @@ function Widget(console) {
 		return type;
 	}
 
-	this.setSubwidgets = function(subwidgets) 
-	{
-		this.subwidgets = subwidgets;
-		this.removeSameSubwidgets();		
-	}
-
+	/*
+	* skips widget in case of two widgets in hierarchy have the same size
+	*/
 	this.removeSameSubwidgets = function()
 	{
 		for (var i in this.subwidgets) {
@@ -108,22 +136,6 @@ function Widget(console) {
 		}
 	}
 
-	this.getCoordinates = function()
-	{
-		var groupCoordinates = {'coord' : null, 'subCoord' : []};
-
-		if (!this.skip) {
-			groupCoordinates['coord'] = this.coordinates;
-		}
-
-		for (var i in this.subwidgets) {
-			var subCoord = this.subwidgets[i].getCoordinates();
-			groupCoordinates['subCoord'].push(subCoord);
-		}
-
-		return groupCoordinates;
-	}
-
 	/*
 	* @returns string 
 	*/
@@ -133,7 +145,6 @@ function Widget(console) {
 		var output = '';
 
 		if (!this.skip) {
-			console.log('and I am not skipped'); 	
 			output +=  '<graphicalElement>';
 			output += "<x>" + this.coordinates.xx + '</x>';
 			output += "<y>" + this.coordinates.yy + '</y>';		

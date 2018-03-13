@@ -22,13 +22,13 @@ try{
 //for debug only
 config.print();
 
-phantom.exit(0);
+// phantom.exit(0);
 
 //sets browser window size
 page.viewportSize = {width: config.width, height: config.height};
 
 page.open(config.url, function(status){
-    if(status === 'success'){
+    if(status === 'success' || status !== 'success'){
         setTimeout(function(config){
 
             //modules injection inside website context
@@ -39,12 +39,6 @@ page.open(config.url, function(status){
                 }
             }
 
-            //takes screenshot of whole site
-            page.render(config.getResultImagePath(null), {format: config.imageFormat, quality: this.imageQuality});
-
-            //save content of page, just for debug
-            // fs.write('./content/'+config.service+'/content', page.content, 'w');
-
             //config for evaluate - only serializable object can be passed
             serializableConfig = config.makeSerializable();
 
@@ -53,15 +47,19 @@ page.open(config.url, function(status){
                 //result object
                 var dashOut = {};
 
+                if(config.onlyScreen) {
+                    return dashOut;
+                }
+
                 //configurating Service with needed modules
                 var service = new Service(console);
                 service.execute(config);
 
                 if(config.wrap){
-                    dashOut.newWindowSize = service.getNewWindowSize(null);
+                    dashOut.newWindowSize = service.getNewWindowSize();
                 }
+
                 //creating result
-                
                 dashOut.xml = service.generateDashboardXML();
                 dashOut.coordinates = service.getWidgetsCoordinates();
 
@@ -73,7 +71,7 @@ page.open(config.url, function(status){
             //deserialization of result
             dashResult = JSON.parse(dashResult);
 
-            if(config.wrap){
+            if(config.wrap && !config.onlyScreen){
                 page.clipRect = {
                     top: dashResult.newWindowSize.y,
                     left: dashResult.newWindowSize.x,
@@ -84,10 +82,14 @@ page.open(config.url, function(status){
                 page.viewportSize = {width: dashResult.newWindowSize, height: dashResult.newWindowSize.height};
             }
 
+            //takes screenshot of whole website
             page.render(config.getResultImagePath(null), {format: config.imageFormat, quality: this.imageQuality});
 
+            //saves content of page, just for debug
+            // fs.write('./content/'+config.service+'/content', page.content, 'w');
+
             //creates screens of widgets
-            if(config.generateWidetScreenshots !== false){
+            if(config.generateWidetScreenshots && !config.onlyScreen){
                 renderWidgets(dashResult.coordinates, null);
             }
 

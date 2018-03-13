@@ -30,24 +30,6 @@ function Service(console) {
 		}
 	};
 
-	/*
-	* @returns string
-	*/
-	this.generateDashboardXML = function() {
-		var output = "<dashboard>";
-		output += "<x>"+this.marginX+"</x>";
-		output += "<y>"+this.marginY+"</y>";
-		output += "<width>"+this.width+"</width>";
-		output += "<height>"+this.height+"</height>";
-
-		for (var i in this.widgets) {
-			output += this.widgets[i].generateXML();
-		}
-
-		output += "</dashboard>";
-		return output;
-	}
-
 	this.getNewWindowSize = function()
 	{
 		var minY = this.height; var maxY = 0;
@@ -94,5 +76,23 @@ function Service(console) {
 		}
 
 		return coordinates;
+	}
+
+	/*
+	* @returns string XML
+	*/
+	this.generateDashboardXML = function() {
+		var output = "<dashboard>";
+		output += "<x>"+this.marginX+"</x>";
+		output += "<y>"+this.marginY+"</y>";
+		output += "<width>"+this.width+"</width>";
+		output += "<height>"+this.height+"</height>";
+
+		for (var i in this.widgets) {
+			output += this.widgets[i].generateXML();
+		}
+
+		output += "</dashboard>";
+		return output;
 	}
 }
