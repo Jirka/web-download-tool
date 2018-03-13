@@ -72,14 +72,7 @@ page.open(config.url, function(status){
             dashResult = JSON.parse(dashResult);
 
             if(config.wrap && !config.onlyScreen){
-                page.clipRect = {
-                    top: dashResult.newWindowSize.y,
-                    left: dashResult.newWindowSize.x,
-                    width : dashResult.newWindowSize.width,
-                    height: dashResult.newWindowSize.height
-                }
-
-                page.viewportSize = {width: dashResult.newWindowSize, height: dashResult.newWindowSize.height};
+                page.clipRect = getRectangle(dashResult.newWindowSize);
             }
 
             //takes screenshot of whole website
@@ -106,6 +99,18 @@ page.open(config.url, function(status){
 });
 
 /*
+* @returns object
+*/
+function getRectangle(coordinates){
+    return {
+        top: coordinates.y,
+        left: coordinates.x,
+        width : coordinates.width,
+        height: coordinates.height
+    };
+}
+
+/*
 * recursive function to generate screens of widgets and subwidgets
 */
 function renderWidgets(hierarchy, level)
@@ -117,12 +122,8 @@ function renderWidgets(hierarchy, level)
 
             newLevel = (level !== null) ? level + '.' + (i+1) : i+1;
 
-            page.clipRect = {
-                top: hierarchy[i].coord.y,
-                left: hierarchy[i].coord.x,
-                width : hierarchy[i].coord.width,
-                height: hierarchy[i].coord.height
-            }
+
+            page.clipRect = getRectangle(hierarchy[i].coord);
 
             page.render(
                 config.getResultImagePath(newLevel),

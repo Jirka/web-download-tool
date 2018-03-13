@@ -121,6 +121,9 @@ function Config(fs, console)
 			case 'width' :
 				isValid = (value !== 0 && !isNaN(value));
 				break;
+			case 'wrap':
+			case 'generateWidetScreenshots':
+				break;
 			case 'isServiceSupported':
 			case 'configServices':
 			case 'modules':
