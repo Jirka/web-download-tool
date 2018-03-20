@@ -1,12 +1,38 @@
 function Config(fs, console)
 {
+	this.properties = [
+		'c',
+		'height',
+		'width',
+		'url',
+		'service',
+		'selector',
+		'customWidget',
+		'types',
+		'map',
+		'filename',
+		'marginX',
+		'marginY',
+		'resultPath',
+		'screenPath',
+		'fileName',
+		'imageFormat',
+		'timeout',
+		'maxHierarchyLevel',
+		'generateWidetScreenshots',
+		'treatAsWebsite',
+		'imageQuality',
+		'configServices',
+		'isServiceSupported',
+		'wrap'
+	];
+
 	this.url = null;
 	this.service = null; 
 	this.selector = 'body'; //root
 	this.customWidget = 'websiteWidget';
 	this.types = [];
 	this.map = {};
-	this.filename = null;
 
 	this.width = 1000;
 	this.height = 1000;
@@ -35,6 +61,8 @@ function Config(fs, console)
 	this.wrap = false;
 	this.onlyScreen = false;
 
+	this.violations = {};
+
 	//getNext() -> transformation to fullpath+web+relativePath+.js
 	this.modules = [
 		'modules/web/Service.js', 
@@ -50,69 +78,94 @@ function Config(fs, console)
 		'modules/web/Widgets/websiteWidget.js'
 	];
 
-	this.parseArguments = function(args) 
+	this.setup = function(args) 
 	{
-		if (args.length === 0) {
-			throw "No arguments supplied"; //add hint
+		//get configuration from all sources
+		var cliConfiguration = this.parseArgumentsFromCLI(args);
+		var jsonConfiguration = this.readAndParseFile(cliConfiguration['c']);
+		var servicesConfiguration = this.readAndParseFile(this.configServices);
+
+		var mergedCliAndJsonConfig = this.mergeAndValidateConfiguration(cliConfiguration, jsonConfiguration);
+		if(mergedCliAndJsonConfig['url'] === undefined){
+			throw 'URL is required parameter';
 		}
 
-		//find custom config file if exists
-		var customConfigPath = null;
-		for (var i = 0; i < args.length; i++) {
-			var value = args[i+1];
-			switch(args[i]) {
-				case '-c':
-				case '--c':
-					customConfigPath = this.getValue(value);
-					break;
-				case '-w':
-				case '--w':
-				case '-url':
-					this.url = this.getValue(value);
-					break;
-				case '-r':
-				case '--r':
-				case '-result':
-					this.resultPath = this.getValue(value);
-					break;
-				case '-s':
-				case '--s':
-				case 'selector':
-					this.selector = this.getValue(value);
-					break;
-				default:
-					break;
-			}
-		}
+		this.service = this.parseUrl(mergedCliAndJsonConfig['url']);
+		this.isServiceSupported = this.isSupported(servicesConfiguration);
+		var serviceConfiguration = (servicesConfiguration[this.service] !== undefined) ? servicesConfiguration[this.service] : {};
 
-		//read config files
-		var services = this.readAndParseFile(this.configServices);
-		var configuration = this.readAndParseFile(customConfigPath);
-
-		this.url = (configuration !== null && configuration['url'] !== undefined) ? configuration['url'] : this.url;
-		if (!this.isUrlValid()) {
-			throw "URL adress is not valid"; //add format example
-		}
-
-		this.service = this.parseUrl();
-
-		this.isServiceSupported = this.isSupported(services);
-
-		//override less important settings
-		mergedConfiguration = (services[this.service] !== undefined) ? services[this.service] : {};
-		for (var i in configuration) {
-			if (this.valideProperties(i, configuration[i])) {
-				mergedConfiguration[i] = configuration[i];
-			}
-		}
+		var mergedConfiguration = this.mergeAndValidateConfiguration(mergedCliAndJsonConfig, serviceConfiguration); 
 
 		this.setProperties(mergedConfiguration);
 	}
 
 	/*
+	* merges two configuration object
+	* arugment priority config overwites additionalConfig argument
+	*/
+	this.mergeAndValidateConfiguration = function(priorityConfig, additionalConfig)
+	{
+		priorityConfig = this.validateProperties(priorityConfig);
+		additionalConfig = this.validateProperties(additionalConfig);
+
+		mergedConfig = additionalConfig;
+
+		for (var i in priorityConfig) {
+			mergedConfig[i] = priorityConfig[i];
+		}
+
+		// this.processViolations();
+
+		return mergedConfig;
+	}
+
+	/*
+	* @throws Exception
+	* @retuns object
+	*/
+	this.parseArgumentsFromCLI = function(args)
+	{
+		console.log(args.length);
+		if (args.length === 0) {
+			throw "No arguments supplied"; //add hint
+		}
+
+		parsedArguments = {
+			'c' : null
+		};
+
+		for (var i = 0; i < args.length; i++) {
+			var propertyName = this.getPropertyName(args[i]);
+			if (propertyName !== null){
+				var value = args[i+1];
+				parsedArguments[propertyName] = this.getValue(value);
+			}
+		}
+
+		return parsedArguments;
+	}
+
+	/*
+	* @returns null|string property name
+	*/
+	this.getPropertyName = function(property)
+	{
+		var propertyName = null;
+
+		for(var i in this.properties) {
+			if ('-' + this.properties[i] === property || ('--' + this.properties[i]) === property) {
+				propertyName = this.properties[i];
+				break;
+			}
+		}
+
+		return propertyName;
+	}
+
+	/*
 	* @returns bool
 	*/
-	this.valideProperties = function(key, value)
+	this.validProperty = function(key, value)
 	{
 		var isValid = (value !== null); // || undefined ?
 
@@ -121,19 +174,60 @@ function Config(fs, console)
 			case 'width' :
 				isValid = (value !== 0 && !isNaN(value));
 				break;
-			case 'wrap':
-			case 'generateWidetScreenshots':
+			case 'url':
+				isValid = this.isUrlValid(value);
 				break;
+			case 'service':
+			case 'selector':
+			case 'customWidget':
+			case 'types':
+			case 'map':
+			case 'filename ':
+			case 'marginX':
+			case 'marginY':
+			case 'resultPath':
+			case 'screenPath':
+			case 'fileName':
+			case 'imageFormat':
+			case 'timeout':
+			case 'maxHierarchyLevel':
+			case 'generateWidetScreenshots':
+			case 'treatAsWebsite':
+			case 'imageQuality':
+			case 'configServices':
+			case 'isServiceSupported':
+			case 'wrap':
+			case 'onlyScreen':
+				break;
+			//protected values -> cannot be overwritten
 			case 'isServiceSupported':
 			case 'configServices':
 			case 'modules':
+			case 'violations':
 				isValid = false;
 			default:
 				isValid = false;
 				break;
 		}
 
+		if (!isValid) {
+			this.violations[key] = key + ' not valid';
+		}
+
 		return isValid;
+	}
+
+	this.validateProperties = function(properties)
+	{
+		var passed = {};
+
+		for(var i in properties) {
+			if(this.validProperty(i, properties[i])) {
+				passed[i] = properties[i];
+			}
+		}
+
+		return passed;
 	}
 
 	this.setProperties = function(configuration)
@@ -157,7 +251,7 @@ function Config(fs, console)
 	}
 
 	/*
-	* @returns null|string file content
+	* @returns null|object with parsed JSON
 	*/
 	this.readAndParseFile = function(path)
 	{
@@ -182,10 +276,10 @@ function Config(fs, console)
 	/*
 	*@returns string url hostname 
 	*/
-	this.parseUrl = function()
+	this.parseUrl = function(url)
 	{
 		var element = document.createElement('a');
-		element.href = this.url;
+		element.href = url;
 
 		return element.hostname;
 	}
@@ -193,13 +287,13 @@ function Config(fs, console)
 	/*
 	* @returns bool
 	*/
-	this.isUrlValid = function()
+	this.isUrlValid = function(url)
 	{
 		//should this be checked for null?
 		var patt = /(http|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?/;
 		var pattern = new RegExp(patt);
 
-		if (!pattern.test(this.url)) {
+		if (!pattern.test(url)) {
 			return false;
 		} 
 		
@@ -303,6 +397,7 @@ function Config(fs, console)
 		console.log('imageFormat::'+this.imageFormat);
 		console.log('width::'+this.width);
 		console.log('height::'+this.height);
+		console.log('timeout::'+this.timeout);
 		console.log('maxHierarchyLevel::'+this.maxHierarchyLevel);
 		console.log('treatAsWebsite::'+this.treatAsWebsite);
 		console.log('generateWidetScreenshots::'+this.generateWidetScreenshots);

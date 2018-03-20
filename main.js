@@ -8,11 +8,14 @@ var fs = require('fs');
 
 setAbsolutePathFromArguments(fs, system.args);
 
+// var convert = require('./external/node_modules/color-convert/index');
+// console.log(convert.rgb.hex([140, 200, 100]));
+
 //custom modules
 var config = require('./modules/system/Config').create(fs, console);
 
 try{
-    config.parseArguments(system.args);
+    config.setup(system.args);
     console.log(config.url);
 } catch(e){
     console.log(e);
@@ -47,21 +50,19 @@ page.open(config.url, function(status){
                 //result object
                 var dashOut = {};
 
-                if(config.onlyScreen) {
-                    return dashOut;
+                if(!config.onlyScreen) {
+                    //configurating Service with needed modules
+                    var service = new Service(console);
+                    service.execute(config);
+
+                    if(config.wrap){
+                        dashOut.newWindowSize = service.getNewWindowSize();
+                    }
+
+                    //creating result
+                    dashOut.xml = service.generateDashboardXML();
+                    dashOut.coordinates = service.getWidgetsCoordinates();
                 }
-
-                //configurating Service with needed modules
-                var service = new Service(console);
-                service.execute(config);
-
-                if(config.wrap){
-                    dashOut.newWindowSize = service.getNewWindowSize();
-                }
-
-                //creating result
-                dashOut.xml = service.generateDashboardXML();
-                dashOut.coordinates = service.getWidgetsCoordinates();
 
                 return JSON.stringify(dashOut);
 
@@ -77,12 +78,13 @@ page.open(config.url, function(status){
 
             //takes screenshot of whole website
             page.render(config.getResultImagePath(null), {format: config.imageFormat, quality: this.imageQuality});
+            if(config.onlyScreen) phantom.exit(0);
 
             //saves content of page, just for debug
             // fs.write('./content/'+config.service+'/content', page.content, 'w');
 
             //creates screens of widgets
-            if(config.generateWidetScreenshots && !config.onlyScreen){
+            if(config.generateWidetScreenshots){
                 renderWidgets(dashResult.coordinates, null);
             }
 
@@ -122,6 +124,7 @@ function renderWidgets(hierarchy, level)
 
             newLevel = (level !== null) ? level + '.' + (i+1) : i+1;
 
+            if(hierarchy[i].coord === undefined) continue;
 
             page.clipRect = getRectangle(hierarchy[i].coord);
 
