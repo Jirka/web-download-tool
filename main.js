@@ -3,20 +3,15 @@ var page = require('webpage').create();
 var system = require('system');
 var fs = require('fs');
 
-// var validator = require('./external/validator/validate.js');
-// console.log(JSON.stringify(validator.validate({password: "bad"}, constraints)));
-
 setAbsolutePathFromArguments(fs, system.args);
 
-// var convert = require('./external/node_modules/color-convert/index');
-// console.log(convert.rgb.hex([140, 200, 100]));
+var converter = require('./external/node_modules/color-convert/index');
 
 //custom modules
 var config = require('./modules/system/Config').create(fs, console);
 
 try{
     config.setup(system.args);
-    console.log(config.url);
 } catch(e){
     console.log(e);
     phantom.exit(1);
@@ -25,79 +20,66 @@ try{
 //for debug only
 config.print();
 
-// phantom.exit(0);
 
 //sets browser window size
 page.viewportSize = {width: config.width, height: config.height};
 
 page.open(config.url, function(status){
-    if(status === 'success' || status !== 'success'){
-        setTimeout(function(config){
+    setTimeout(function(config){
 
-            //modules injection inside website context
-            for(var j in config.modules){
-                if(page.injectJs(config.modules[j]) === false){    
-                    console.log('ERROR: module '+config.modules[j]+' could not be injected');
-                    phantom.exit(1);
-                }
+        console.log('timeout');
+
+        //modules injection inside website context
+        for(var j in config.modules){
+            if(page.injectJs(config.modules[j]) === false){    
+                console.log('ERROR: module '+config.modules[j]+' could not be injected');
+                phantom.exit(1);
+            }
+        }
+
+        //config for evaluate - only serializable object can be passed
+        serializableConfig = config.makeSerializable();
+
+        //-------------------page processing start------------------------
+        var dashResult = page.evaluate(function(config){
+            //result object
+            var dashOut = {};
+
+            if(!config.onlyScreen) {
+                //configurating Service with needed modules
+                var service = new Service(console);
+                service.execute(config);
+
+                //creating result
+                dashOut.xml = service.generateDashboardXML();
+                dashOut.coordinates = service.getWidgetsCoordinates();
             }
 
-            //config for evaluate - only serializable object can be passed
-            serializableConfig = config.makeSerializable();
+            return JSON.stringify(dashOut);
 
-            //-------------------page processing start------------------------
-            var dashResult = page.evaluate(function(config){
-                //result object
-                var dashOut = {};
+        }, serializableConfig); 
+        //-------------------page processing end------------------------
 
-                if(!config.onlyScreen) {
-                    //configurating Service with needed modules
-                    var service = new Service(console);
-                    service.execute(config);
+        //deserialization of result
+        dashResult = JSON.parse(dashResult);
 
-                    if(config.wrap){
-                        dashOut.newWindowSize = service.getNewWindowSize();
-                    }
+        //takes screenshot of whole website
+        page.render(config.getResultImagePath(null), {format: config.imageFormat, quality: this.imageQuality});
+        if(config.onlyScreen) phantom.exit(0);
 
-                    //creating result
-                    dashOut.xml = service.generateDashboardXML();
-                    dashOut.coordinates = service.getWidgetsCoordinates();
-                }
+        //saves content of page, just for debug
+        // fs.write('./content/'+config.service+'/content', page.content, 'w');
 
-                return JSON.stringify(dashOut);
+        //creates screens of widgets
+        if(config.generateWidetScreenshots){
+            renderWidgets(dashResult.coordinates, null);
+        }
 
-            }, serializableConfig); 
-            //-------------------page processing end------------------------
+        //prints result xml to file
+        fs.write(config.getResultXmlPath(), dashResult.xml, 'w');
+        phantom.exit(0);
 
-            //deserialization of result
-            dashResult = JSON.parse(dashResult);
-
-            if(config.wrap && !config.onlyScreen){
-                page.clipRect = getRectangle(dashResult.newWindowSize);
-            }
-
-            //takes screenshot of whole website
-            page.render(config.getResultImagePath(null), {format: config.imageFormat, quality: this.imageQuality});
-            if(config.onlyScreen) phantom.exit(0);
-
-            //saves content of page, just for debug
-            // fs.write('./content/'+config.service+'/content', page.content, 'w');
-
-            //creates screens of widgets
-            if(config.generateWidetScreenshots){
-                renderWidgets(dashResult.coordinates, null);
-            }
-
-            //prints result xml to file
-            fs.write(config.getResultXmlPath(), dashResult.xml, 'w');
-            phantom.exit(0);
-
-        }, config.timeout, config);
-    }
-    else{
-        console.log('ERROR: could not open the page '+config.url);
-        phantom.exit(1);
-    }
+    }, config.timeout, config);
 });
 
 /*
@@ -140,16 +122,14 @@ function renderWidgets(hierarchy, level)
 
 
 /*
-* 
+* sets path from which is phantomJs being executed
 */
 function setAbsolutePathFromArguments(fs, args)
 {
     var absolutePath = null;
-    for (var i = 0; i < args.length; i++) {
-        if (args[i] === '-a') {
-            var path = args[i+1];
-            absolutePath = (path !== undefined) ? path : null;
-        }
+    var index = args[0].lastIndexOf('/');
+    if(index !== -1) {
+        absolutePath = args[0].substr(0, index);
     }
 
     if (absolutePath !== null) {
@@ -178,5 +158,4 @@ page.onError = function(msg, trace) {
       }
 
       console.error(msgStack.join('\n'));
-
 };

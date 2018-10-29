@@ -2,11 +2,8 @@ function HighChartGraphs(console) {
 	this.charts = {};
 	this.ids = [];
 
-	//wanted properties - what concreate service wants
-
 	this.init = function(highcharts, object) {
 		if (highcharts === undefined) {
-			// console.log('highchartgraphs undefined');
 			return;
 		}
 
@@ -17,12 +14,11 @@ function HighChartGraphs(console) {
 			var id = null;
 
 			//warning : can be undefined fiels of array
-			//replace with case?
 			if (highcharts.charts[i].options.chart.renderTo !== undefined) {
 	            id = highcharts.charts[i].options.chart.renderTo;
 	            result = doc.findIdOnLowerLevelS(id, object);
 	        }
-	        else{			//this cant be undefined?
+	        else{
 	        	id = highcharts.charts[i].container.id;  //simplify highcharts.charts			
 	            result = doc.findIdOnLowerLevelS(id, object);
 	        }
@@ -32,12 +28,8 @@ function HighChartGraphs(console) {
 	            this.charts[id] = {'options' : highcharts.charts[i].options, 'obj' : result};
 	        }
 
-
 	        //if there are more then two widgets inside, do subwidgets
-		}
-
-		console.log('HCids::'+this.ids);
-		
+		}		
 	};
 
 	/*
@@ -97,7 +89,6 @@ function HighChartGraphs(console) {
 			if (o.chart.type !== undefined) {
 
 				types[o.chart.type] = null;	
-				console.log('type is::::'+o.chart.type);
 			}
 
 			for (var j in o.series) {
@@ -109,7 +100,6 @@ function HighChartGraphs(console) {
 			types = Object.keys(types);
 			if (types.length === 1) {
 				result.push(Object.keys(types)[0]);
-				//continue without next else?
 			}
 			else{
 				var supportedCombinations = [['line','column'],[]]; //as property
@@ -128,8 +118,6 @@ function HighChartGraphs(console) {
 
 					if (pass) {
 						result.push(tmpName);
-						//get name for combo 
-						// console.log('combo has passed');
 						break;
 					}
 					else{
@@ -138,13 +126,10 @@ function HighChartGraphs(console) {
 
 				}
 
-
 				//split types of element on page to categories according to prioriries = chart = high, text = low
 			}
 		}
 
-		// type = Object.keys(type);
-		// console.log('result'+result);
 		var obj = {};
 		for (var i in result) {
 			obj[result[i]] = null;
@@ -158,13 +143,7 @@ function HighChartGraphs(console) {
 			return null;
 		}
 
-		return result; //should be string not object
+		return result;
 
-	}
-
-
-	//getProperty(propertyName)
-	//or
-	//getType
-				
+	}				
 }

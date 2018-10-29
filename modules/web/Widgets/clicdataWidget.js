@@ -4,14 +4,14 @@ function clicdataWidget(console) {
 	this.highcharts = new HighChartGraphs(console);
 	this.widget = null; //should this be here
 
-	this.init = function(html, config, level)
+	this.init = function(html, config, level, parent)
 	{
-		this.widget = this.document.createAndInitWidget(html, config, level);
+		this.widget = this.document.createAndInitWidget(html, config, level, parent);
 
 		//self instance --should be instance? widow[config.customWidget] ; new this.object();
 		this.object = config.customWidget;
 
-		//initialization of highchart with envirement variable
+		//initialization of highchart with environment variable
 		this.highcharts.init(Highcharts, html);
 	}
 
@@ -44,8 +44,6 @@ function clicdataWidget(console) {
 	this.getSubwidgets = function() {
 		var subwidgets = [];
 
-		// should find out whether it is not in its bounds?
-		//think whether its logical to keep here, when I dont have any test cases, or let it be same for highcharts?
 		if (this.highcharts.hasSubwidgets()) {
 			console.log('has subwidgets');
 			var ids = this.highcharts.ids;
@@ -54,7 +52,8 @@ function clicdataWidget(console) {
 				widget.init(
 					this.highcharts.charts[ids[i]].obj,
 					this.widget.config, 
-					this.widget.level+1
+					this.widget.level+1,
+					this.widget.coordinates
 				);
 				widget.execute();
 				subwidgets.push(widget.getWidget());

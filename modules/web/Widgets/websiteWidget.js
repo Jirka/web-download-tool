@@ -1,43 +1,42 @@
 function websiteWidget()
-{
-	
-	this.init = function(html, config, level)
+{	
+	this.init = function(html, config, level, parent)
 	{
 		var generalWidget = new Widget(console);
-		generalWidget.init(html, config, level);
+		generalWidget.init(html, config, level, parent);
 		this.generalWidget = generalWidget;
 
-		//self instance --should be instance? widow[config.customWidget] ; new this.object();
+		//self instance
 		this.object = config.customWidget;
 	}
 
 	this.execute = function()
-	{
+	{	
+		console.log('execute');
+
 		this.generalWidget.setCoordinates();
 		this.generalWidget.setSubwidgets(this.getSubwidgets());
+		this.generalWidget.getCssProperties();
 	}
 	
 	this.getSubwidgets = function() 
 	{
+
+		console.log(this.generalWidget.level + " :::::::: " + this.generalWidget.maxLevel );
 		var subwidgets = [];
 		if (this.generalWidget.level <= this.generalWidget.maxLevel) {
-			// console.log('level::'+this.generalWidget.level+' max::'+this.generalWidget.maxLevel);
 			for (var i in this.generalWidget.html.children) {
 				if (typeof this.generalWidget.html.children[i] === 'object') {
 					
 					var widget = new window[this.object](console);
-					console.log('creating subwidget'+this.generalWidget.html.children[i]);
 					widget.init(
-						this.generalWidget.html.children[i], 
+						this.generalWidget.html.children[i],
 						this.generalWidget.config, 
-						this.generalWidget.level+1
+						this.generalWidget.level+1,
+						this.generalWidget
 					);
 					widget.execute();
 					subwidgets.push(widget.getWidget());
-				}
-				else{
-						//just for debug
-						// console.log(this.html.children[i]);
 				}
 			}
 		}

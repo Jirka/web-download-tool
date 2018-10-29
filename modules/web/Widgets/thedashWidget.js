@@ -2,9 +2,9 @@ function thedashWidget(console) {
 	this.widget = null;
 	this.document = new Document(null, console);
 
-	this.init = function(html, config, level)
+	this.init = function(html, config, level, parent)
 	{
-		this.widget = this.document.createAndInitWidget(html, config, level);
+		this.widget = this.document.createAndInitWidget(html, config, level, parent);
 	}
 
 	/*
@@ -23,7 +23,7 @@ function thedashWidget(console) {
 	this.getType = function()
 	{
 		var type =  this.document.findClassOnLowerLevel(
-			this.widget.supportedTypes, 
+			this.widget.supportedTypes,
 			this.widget.html
 		);
 		

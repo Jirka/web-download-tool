@@ -31,10 +31,6 @@ function showcaseWidget() {
 		type = "CHART";
 		return type;
 	};
-	
-	this.getSubwidgets = function() {
-		
-	};
 
 	/*
 	* forwarding instance of general widget

@@ -5,27 +5,39 @@ function Config(fs, console)
 		'height',
 		'width',
 		'url',
-		'service',
 		'selector',
-		'customWidget',
 		'types',
 		'map',
-		'filename',
+		'fileName',
 		'marginX',
 		'marginY',
 		'resultPath',
 		'screenPath',
-		'fileName',
 		'imageFormat',
 		'timeout',
-		'maxHierarchyLevel',
-		'generateWidetScreenshots',
+		'maximumHierarchyLevel',
+		'generateWidgetScreenshots',
 		'treatAsWebsite',
 		'imageQuality',
-		'configServices',
-		'isServiceSupported',
-		'wrap'
+		'wrap',
+		'widgetClasses',
+		'hasHighcharts',
+		'useRelativeCoordinates',
+		'onlyScreen',
+		'showCssProperties',
+		'removeElementsBiggerThan',
+		'offset'
 	];
+
+	this.booleanValues = [
+		'generateWidgetScreenshots',
+		'treatAsWebsite',
+		'onlyScreen',
+		'wrap',
+		'useRelativeCoordinates',
+		'hasHighcharts',
+		'showCssProperties'
+	]
 
 	this.url = null;
 	this.service = null; 
@@ -47,37 +59,45 @@ function Config(fs, console)
 	this.imageFormat = 'png';
 
 	this.timeout = 5000;
-	this.maxHierarchyLevel = 1;
+	this.maximumHierarchyLevel = 1;
+	this.removeElementsBiggerThan = 101;
+	this.offset = 0;
 
-	this.generateWidetScreenshots = false;
+	this.useRelativeCoordinates = false;
+	this.showCssProperties = false;
+
+	this.generateWidgetScreenshots = false;
 	this.treatAsWebsite = false;
 
 	this.imageQuality = 100; 
+	this.onlyScreen = false;
 
-	//down protected values
+	//-------protected values-------
 	this.configServices = "config/services.json";
 
 	this.isServiceSupported = false;
-	this.wrap = false;
-	this.onlyScreen = false;
 
 	this.violations = {};
 
-	//getNext() -> transformation to fullpath+web+relativePath+.js
 	this.modules = [
 		'modules/web/Service.js', 
 		'modules/web/Widget.js',
 		'modules/web/Document.js',
 		'modules/web/HighChartGraphs.js',
-		'modules/web/Widgets/clicdataWidget.js',	//include just one needed ____Widget.js
+		'modules/web/Widgets/clicdataWidget.js',
 		'modules/web/Widgets/datapineWidget.js',
 		'modules/web/Widgets/geckoboardWidget.js',
 		'modules/web/Widgets/klipfolioWidget.js',
 		'modules/web/Widgets/thedashWidget.js',
 		'modules/web/Widgets/showcaseWidget.js',
-		'modules/web/Widgets/websiteWidget.js'
+		'modules/web/Widgets/websiteWidget.js',
+		'external/node_modules/css-background-parser/index.js'
 	];
 
+	/*
+	*loads and validates configuration sources
+	*validated values are set as properties according their priority
+	*/
 	this.setup = function(args) 
 	{
 		//get configuration from all sources
@@ -85,7 +105,15 @@ function Config(fs, console)
 		var jsonConfiguration = this.readAndParseFile(cliConfiguration['c']);
 		var servicesConfiguration = this.readAndParseFile(this.configServices);
 
-		var mergedCliAndJsonConfig = this.mergeAndValidateConfiguration(cliConfiguration, jsonConfiguration);
+		jsonConfiguration = (jsonConfiguration !== null) ? jsonConfiguration : {};
+
+		this.validateConfigurations({
+			'cli' : cliConfiguration,
+			'file' : jsonConfiguration,
+		});
+
+
+		var mergedCliAndJsonConfig = this.mergeConfigurations(cliConfiguration, jsonConfiguration);
 		if(mergedCliAndJsonConfig['url'] === undefined){
 			throw 'URL is required parameter';
 		}
@@ -93,31 +121,13 @@ function Config(fs, console)
 		this.service = this.parseUrl(mergedCliAndJsonConfig['url']);
 		this.isServiceSupported = this.isSupported(servicesConfiguration);
 		var serviceConfiguration = (servicesConfiguration[this.service] !== undefined) ? servicesConfiguration[this.service] : {};
+		this.validateConfigurations({'service' : serviceConfiguration});
 
-		var mergedConfiguration = this.mergeAndValidateConfiguration(mergedCliAndJsonConfig, serviceConfiguration); 
+		var mergedConfiguration = this.mergeConfigurations(mergedCliAndJsonConfig, serviceConfiguration); 
 
 		this.setProperties(mergedConfiguration);
 	}
 
-	/*
-	* merges two configuration object
-	* arugment priority config overwites additionalConfig argument
-	*/
-	this.mergeAndValidateConfiguration = function(priorityConfig, additionalConfig)
-	{
-		priorityConfig = this.validateProperties(priorityConfig);
-		additionalConfig = this.validateProperties(additionalConfig);
-
-		mergedConfig = additionalConfig;
-
-		for (var i in priorityConfig) {
-			mergedConfig[i] = priorityConfig[i];
-		}
-
-		// this.processViolations();
-
-		return mergedConfig;
-	}
 
 	/*
 	* @throws Exception
@@ -125,7 +135,6 @@ function Config(fs, console)
 	*/
 	this.parseArgumentsFromCLI = function(args)
 	{
-		console.log(args.length);
 		if (args.length === 0) {
 			throw "No arguments supplied"; //add hint
 		}
@@ -159,77 +168,161 @@ function Config(fs, console)
 			}
 		}
 
+		if(propertyName === null && property[0] === '-') {
+			this.violations['cli'] = [property + ' is not supported'];
+		}
+
 		return propertyName;
 	}
 
 	/*
-	* @returns bool
+	* merges two configuration objects
+	* arugment priority config overwrites additionalConfig argument
 	*/
-	this.validProperty = function(key, value)
+	this.mergeConfigurations = function(priorityConfig, additionalConfig)
 	{
-		var isValid = (value !== null); // || undefined ?
+		mergedConfig = additionalConfig;
 
+		for (var i in priorityConfig) {
+			mergedConfig[i] = priorityConfig[i];
+		}
+
+		return mergedConfig;
+	}
+
+
+	/**
+	* @throws exception
+	*/
+	this.validateConfigurations = function(configurations)
+	{
+		exceptionMessage = 'In passed configurations, following errors has occured::\n';
+
+		for(var i in configurations){
+			console.log(i);
+			for(var j in configurations[i]){
+				console.log(j);
+				var propertyName = configurations[i][j];
+				this.validateProperty(j, propertyName, i);
+			}
+		}
+
+		var hasViolations = false;
+		for(var context in this.violations){
+			exceptionMessage += '--' + 'configuration from ' + context + '::\n'
+			exceptionMessage = (context === 'service') ? '(service configuration file can be found in `' + this.configServices + '` under current service `' + this.service + '`)\n' : ''; 
+			for(var i in this.violations[context]){
+				exceptionMessage += '\t' + this.violations[context][i] + '\n';
+				hasViolations = true;
+			}
+		}
+
+		if(hasViolations) {
+			throw exceptionMessage;
+		}
+	}
+
+	/*
+	* Adds violation in case type or value of property is not valid
+	*/
+	this.validateProperty = function(key, value, context)
+	{
 		switch(key) {
 			case 'height':
 			case 'width' :
-				isValid = (value !== 0 && !isNaN(value));
+				if(value <= 0 || isNaN(value)){
+					this.createViolationContext(context);
+					this.violations[context].push(key + ' has to be type of integer greater than 0'); 
+				}
 				break;
 			case 'url':
-				isValid = this.isUrlValid(value);
+				if(!this.isUrlValid(value)){
+					this.createViolationContext(context);
+					this.violations[context].push(key + ' has to be be valid url address in format http://domain.com[/path]'); 
+				}
 				break;
-			case 'service':
+			case 'c':
+				if(value !== null && (typeof value !== 'string' && !isNaN(value))) {
+					this.createViolationContext(context);
+					this.violations[context].push(key + ' has to be type of string'); 
+				}
+				break;
 			case 'selector':
-			case 'customWidget':
-			case 'types':
-			case 'map':
-			case 'filename ':
-			case 'marginX':
-			case 'marginY':
+			case 'fileName':
 			case 'resultPath':
 			case 'screenPath':
-			case 'fileName':
+				if(typeof value !== 'string' && !isNaN(value)) {
+					this.createViolationContext(context);
+					this.violations[context].push(key + ' has to be type of string'); 
+				} 
+				break;
+			case 'widgetClasses':
+			case 'types':
+			case 'map':
+				break;
 			case 'imageFormat':
+				if(value !== 'jpg' && value !== 'jpeg' && value !== 'png' && value !== 'pdf' && value !== 'bmp' && value !== ''){
+					this.createViolationContext(context);
+					this.violations[context].push(key + ' value has to be one of jpg|png|jpeg|pdf|bmp|ppm')	
+				}
+				break
+			case 'marginX':
+			case 'marginY':
 			case 'timeout':
-			case 'maxHierarchyLevel':
-			case 'generateWidetScreenshots':
-			case 'treatAsWebsite':
+			case 'maximumHierarchyLevel':
+				if(isNaN(value) || value === null){
+					this.createViolationContext(context);
+					this.violations[context].push(key + ' value has to be type of integer');	
+				}
+				break;
 			case 'imageQuality':
-			case 'configServices':
-			case 'isServiceSupported':
-			case 'wrap':
+			case 'removeElementsBiggerThan':
+			case 'offset':
+				if(!(value >= 0 && value <= 100)){
+					this.createViolationContext(context);
+					this.violations[context].push(key + ' value has to be >= 0 and <= 100');	
+				}
+				break;
+			case 'generateWidgetScreenshots':
+			case 'treatAsWebsite':
 			case 'onlyScreen':
+			case 'wrap':
+			case 'useRelativeCoordinates':
+			case 'showCssProperties':
+			case 'hasHighcharts':
+				if(typeof value !== 'boolean' && value !== 'true' && value !== 'false'){
+					this.createViolationContext(context);
+					this.violations[context].push(key + ' value has to be boolean value');	
+				}
 				break;
 			//protected values -> cannot be overwritten
 			case 'isServiceSupported':
 			case 'configServices':
 			case 'modules':
 			case 'violations':
-				isValid = false;
+			case 'service':
+			case 'customWidget':
+				this.createViolationContext(context);
+				this.violations[context].push(key + ' is protected value and cannot be set'); 
+				break;
 			default:
-				isValid = false;
+				this.createViolationContext(context);
+				this.violations[context].push(key + ' is not supported'); 				
 				break;
 		}
-
-		if (!isValid) {
-			this.violations[key] = key + ' not valid';
-		}
-
-		return isValid;
 	}
 
-	this.validateProperties = function(properties)
+
+	this.createViolationContext = function(context)
 	{
-		var passed = {};
-
-		for(var i in properties) {
-			if(this.validProperty(i, properties[i])) {
-				passed[i] = properties[i];
-			}
+		if(this.violations[context] === undefined){
+			this.violations[context] = [];
 		}
-
-		return passed;
 	}
 
+	/*
+	* override default properties from ones set in configuration
+	*/
 	this.setProperties = function(configuration)
 	{
 		if (configuration === null) {
@@ -237,12 +330,28 @@ function Config(fs, console)
 		}
 
 		for (var i in configuration) {
+			if(configuration[i] === null) {
+				continue;
+			}
+
 			this[i] = configuration[i];
+
+			if(this.includes(this.booleanValues, i)) {
+				this[i] = this.convertToBoolean(configuration[i]);
+			}
 		}
 
 		if (this.isServiceSupported && !this.treatAsWebsite) {
 			this.customWidget = this.service + 'Widget';
 		}
+	}
+
+	/*
+	* @returns boolean
+	*/
+	this.convertToBoolean = function(value)
+	{
+		return (value === 'true' || value === true) ? true : false;
 	}
 
 	this.getValue = function(value)
@@ -260,13 +369,13 @@ function Config(fs, console)
 		}
 
 		if (!fs.exists(path)) {
-			throw "Given file doesnt exist " + path; //specify which
+			throw "Given file doesnt exist " + path;
 		}
 
 		try{
 			result = JSON.parse(fs.read(path))
 		} catch(e) {
-			throw 'Problem with parsing json file';
+			throw 'Problem with parsing json file `' + path + '`';
 		}
 
 		return result;
@@ -291,6 +400,7 @@ function Config(fs, console)
 	{
 		//should this be checked for null?
 		var patt = /(http|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?/;
+		// var patt = /^http:\/\/\w+(\.\w+)*(:[0-9]+)?\/?(\/[.\w]*)*$/
 		var pattern = new RegExp(patt);
 
 		if (!pattern.test(url)) {
@@ -317,17 +427,16 @@ function Config(fs, console)
 	}
 
 	/*
+	* determines whether service is supported 
 	* @returns bool
 	*/
 	this.isSupported = function(services)
 	{
 		serviceSplit = this.service.split('.');
-		// console.log(services);
 
 		var suppoted = false;
 	    for (var i in services) {
 	        if (this.includes(serviceSplit, i)) {
-	    	   console.log('supported service :: '+ this.service);
 	        	this.service = i;
 	            suppoted = true;
 	            break;
@@ -338,6 +447,7 @@ function Config(fs, console)
 	}
 
 	/*
+	* @param string|null level representing actual hierarchy level of generated image 
 	* @returns string path to image saving
 	*/
 	this.getResultImagePath = function(level)
@@ -374,13 +484,17 @@ function Config(fs, console)
 	 	properties['height'] = this.height;
 	 	properties['imageFormat'] = this.imageFormat;
 	 	properties['customWidget'] = this.customWidget;
-	 	properties['maxHierarchyLevel'] = this.maxHierarchyLevel;
-	 	properties['generateWidetScreenshots'] = this.generateWidetScreenshots;
+	 	properties['maximumHierarchyLevel'] = this.maximumHierarchyLevel;
+	 	properties['generateWidgetScreenshots'] = this.generateWidgetScreenshots;
 	 	properties['treatAsWebsite'] = this.treatAsWebsite; //need to export?
 	 	properties['marginX'] = this.marginX;
 	 	properties['marginY'] = this.marginY;
-	 	properties['wrap'] = this.wrap;
 	 	properties['onlyScreen'] = this.onlyScreen;
+	 	properties['useRelativeCoordinates'] = this.useRelativeCoordinates;
+	 	properties['showCssProperties'] = this.showCssProperties;
+	 	properties['executingService'] = (this.isServiceSupported && !this.treatAsWebsite);
+	 	properties['removeElementsBiggerThan'] = this.removeElementsBiggerThan;
+	 	properties['offset'] = this.offset;
 
 	 	return properties;
 	}
@@ -398,18 +512,22 @@ function Config(fs, console)
 		console.log('width::'+this.width);
 		console.log('height::'+this.height);
 		console.log('timeout::'+this.timeout);
-		console.log('maxHierarchyLevel::'+this.maxHierarchyLevel);
+		console.log('maximumHierarchyLevel::'+this.maximumHierarchyLevel);
 		console.log('treatAsWebsite::'+this.treatAsWebsite);
-		console.log('generateWidetScreenshots::'+this.generateWidetScreenshots);
+		console.log('generateWidgetScreenshots::'+this.generateWidgetScreenshots);
 		console.log('resultPath::'+this.resultPath);
 		console.log('fileName::'+this.fileName);
 		console.log('screenPath::'+this.screenPath);
 		console.log('marginX::'+this.marginX);
 		console.log('marginY::'+this.marginY);
 		console.log('customWidget::' + this.customWidget);
-		console.log('wrap::' + this.wrap);
 		console.log('onlyScreen::' + this.onlyScreen);
 		console.log('absoluteResultPath::' + fs.workingDirectory + '/' + this.resultPath );
+		console.log('configFileSerices:: ' +this.configServices );
+		console.log('useRelativeCoordinates::'+this.useRelativeCoordinates);
+		console.log('showCssProperties::' + this.showCssProperties);
+		console.log('removeElementsBiggerThan::' + this.removeElementsBiggerThan);
+		console.log('offset::' + this.offset);
 		console.log('-----------------CONFIG END--------------------');
 	}
 

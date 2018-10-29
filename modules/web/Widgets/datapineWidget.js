@@ -6,16 +6,16 @@ function datapineWidget(console) {
 	this.widget = null;
 	this.topLevelHtml = null;
 
-	this.init = function(html, config, level)
+	this.init = function(html, config, level, parent)
 	{
-		this.widget = this.document.createAndInitWidget(html, config, level);
+		this.widget = this.document.createAndInitWidget(html, config, level, parent);
 
 		//self instance --should be instance? widow[config.customWidget] ; new this.object();
 		this.self = window[config.customWidget];
 
 		if (level === 0) {
 			//because this widget is representing whole dashboard
-			this.widget.skip = true;
+			this.widget.setSkip();
 			this.topLevelHtml = html.children;
 		}
 
@@ -32,11 +32,9 @@ function datapineWidget(console) {
 
 	this.getType = function()
 	{
-		//to save time
 		if (this.widget.level === 0) return '';
 
 		var type = this.highcharts.getProperty('type');
-		console.log('type of widget:::'+type);
 		if (type === null) {
 			//default type
 		}
@@ -69,8 +67,10 @@ function datapineWidget(console) {
 					widget.init(
 						newHier['elems'][id],
 						this.widget.config,
-						this.widget.level + 1
+						this.widget.level + 1,
+						this.widget
 					);
+					console.log('--------------------seting:::' + this.widget.level +1);
 					widget.topLevelHtml = this.topLevelHtml;
 					widget.execute();
 					widgets.push(widget.widget);

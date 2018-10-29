@@ -8,27 +8,35 @@ function Widget(console) {
 	this.maxLevel = 1;
 	this.config = null; 
 	this.exernalService = null;
+	this.parent = null;
 
 	this.level = 0;	//actual level in hierarchy 
 	this.skip = false;
 
 	this.subwidgets = []; //[self]
 
-	this.init = function(html, config, level)
+	this.init = function(html, config, level, parent)
 	{
 		this.html = html;
 		this.supportedTypes = config.types; 
 		this.level = level;
-		this.maxLevel = config.maxHierarchyLevel;
+		this.maxLevel = config.maximumHierarchyLevel;
+		this.parent = parent;
 		this.config = config;
+		this.css = {};
 	}
 
 	/*
-	* 
+	* @throws Exception
 	*/
 	this.setCoordinates = function()
 	{
-		var coordinates = {'x' : 0, 'y' : 0, 'left' : 0, 'top' : 0};
+		var coordinates = {'x' : 0, 'y' : 0, 'height' : 0, 'width' : 0};
+
+
+		if(this.html === null) {
+			throw new "ERROR no html found";
+		}
 
 		if (this.html !== null) {
 			var coordinates = this.html.getBoundingClientRect();
@@ -40,8 +48,21 @@ function Widget(console) {
 		this.coordinates['xx'] = this.coordinates['x'] - this.config.marginX;
 		this.coordinates['yy'] = this.coordinates['y'] - this.config.marginY;
 
-		if (this.coordinates.width <= 0 || this.coordinates.height <= 0 || this.coordinates.x <= 0 || this.coordinates.y <= 0) {
-			this.skip = true;
+		this.checkCoordinates(coordinates);
+	}
+
+	/*
+	* sets skip property in case element is invisible or takes space of whole website
+	*/
+	this.checkCoordinates = function(coordinates)
+	{
+		if (this.coordinates.width <= 0 
+			|| this.coordinates.height <= 0 
+			|| this.coordinates.x < 0 
+			|| this.coordinates.y < 0
+			|| (this.config.width <= coordinates.width && this.config.height <= coordinates.height)  
+		) {
+			this.setSkip();
 		}
 	}
 
@@ -53,15 +74,38 @@ function Widget(console) {
 	this.setSubwidgets = function(subwidgets) 
 	{
 		this.subwidgets = subwidgets;
-		this.removeSameSubwidgets();		
+		this.removeSameSubwidgets();	
 	}
-	
+
+	this.addSubwidget = function(subwidget)
+	{
+		this.subwidgets.push(subwidget);
+	}
+
+	this.getArea = function()
+	{
+		if(this.coordinates !== null){
+			return this.coordinates.width * this.coordinates.height;
+		}
+
+		return 0;
+	}
+
+	this.setSkip = function()
+	{
+		this.skip = true;
+
+		for(var i in this.subwidgets) {
+			this.subwidgets[i].level = this.level;
+		}
+	}
+
 	/*
 	* @returns object of coordinates of widget and subwidgets
 	*/
 	this.getCoordinates = function()
 	{
-		var groupCoordinates = {'widget' : null, 'subCoord' : []};
+		var groupCoordinates = {'coord' : null, 'subCoord' : []};
 
 		if (!this.skip) {
 			groupCoordinates['coord'] = this.coordinates;
@@ -70,6 +114,53 @@ function Widget(console) {
 		for (var i in this.subwidgets) {
 			var subCoordinates = this.subwidgets[i].getCoordinates();
 			groupCoordinates['subCoord'].push(subCoordinates);
+		}
+
+		return groupCoordinates;
+	}
+
+	this.getPreviousVisibleParent = function(parent)
+	{
+		if(parent === null) {
+			return null;
+		}
+
+		if(parent !== null && parent.skip){
+			return this.getPreviousVisibleParent(parent.parent);
+		}
+
+		return parent;
+	}
+
+	this.getRelativeCoordinatesTowardParent = function()
+	{
+		var groupCoordinates = {'coord' : null, 'subCoord' : []};
+
+		if (!this.skip) {
+			var parent = this.parent;
+			if(this.parent !== null && this.parent.skip){
+				parent = this.getPreviousVisibleParent(this.parent);
+			}
+
+			if(this.parent !== null && parent !== null && this.parent.coordinates !== null){
+				groupCoordinates['coord'] = {
+					'x' : Math.abs(this.parent.coordinates.x - this.coordinates.x), 
+					'y' : Math.abs(this.parent.coordinates.y - this.coordinates.y),
+					'xx' : Math.abs(this.parent.coordinates.xx - this.coordinates.xx),
+					'yy' : Math.abs(this.parent.coordinates.yy - this.coordinates.yy),
+					'width' : this.coordinates.width, 
+					'height' : this.coordinates.height
+				};
+			}
+			else {
+				groupCoordinates['coord'] = this.coordinates;
+			}
+		}
+
+		for (var i in this.subwidgets) {
+			var subCoordinates = this.subwidgets[i].getRelativeCoordinatesTowardParent();
+			groupCoordinates['subCoord'].push(subCoordinates);
+		
 		}
 
 		return groupCoordinates;
@@ -125,36 +216,81 @@ function Widget(console) {
 	this.removeSameSubwidgets = function()
 	{
 		for (var i in this.subwidgets) {
-			if (
-				this.coordinates.x === this.subwidgets[i].coordinates.x
+			if (this.coordinates.x === this.subwidgets[i].coordinates.x
 				&& this.coordinates.y === this.subwidgets[i].coordinates.y
 				&& this.coordinates.width === this.subwidgets[i].coordinates.width
 				&& this.coordinates.height === this.subwidgets[i].coordinates.height
 			) {
-				this.subwidgets[i].skip = true;
+				this.subwidgets[i].setSkip();
+			}
+		}
+	}
+
+	this.getCssProperties = function()
+	{
+		if(this.html === null || this.skip) {
+			return;
+		}
+
+		style = getComputedStyle(this.html, null);
+		parsedStyle = cssBgParser.parseElementStyle(style);
+		
+		for(var i in style) {
+			if(style[i] !== '' && typeof style[i] !== 'function'){
+				
+				switch(i) {
+					case 'background-color':
+					case 'background':
+						if(parsedStyle.backgrounds.length > 0) {
+							this.css['background-color'] = parsedStyle.backgrounds[0].color;
+						}
+						break;
+				    case 'background-image':
+				    case 'background-position':
+				    case 'background-size':
+				    case 'background-repeat':
+				    case 'background-origin':
+				    case 'background-clip':
+				    case 'background-attachment':
+						break;
+					case 'color':
+						break;
+					case 'visibility':
+						this.skip = (style[i] === 'hidden') ? true : this.skip;
+						break;
+					case 'display':
+						this.skip = (style[i] === 'none') ? true : this.skip;
+						break;
+					default:
+						break;
+				}
 			}
 		}
 	}
 
 	/*
-	* @returns string 
+	* @returns string XML
 	*/
-	this.generateXML = function()
+	this.generateXML = function(coordinates)
 	{
-		console.log('generating xml')
 		var output = '';
+
+		if(this.level >= this.maxLevel) return '';
 
 		if (!this.skip) {
 			output +=  '<graphicalElement>';
-			output += "<x>" + this.coordinates.xx + '</x>';
-			output += "<y>" + this.coordinates.yy + '</y>';		
-			output += "<width>" + this.coordinates.width + '</width>';		
-			output += "<height>" + this.coordinates.height + '</height>';
+			output += "<x>" + coordinates.xx + '</x>';
+			output += "<y>" + coordinates.yy + '</y>';		
+			output += "<width>" + coordinates.width + '</width>';		
+			output += "<height>" + coordinates.height + '</height>';
+			if(this.config.showCssProperties && this.css['background-color'] !== undefined){
+			 	output += '<background-color>' + this.css['background-color'] + '</background-color>';
+			}
 			output += "<type>" + this.type + "</type>";
 		}	
 
 			for (var i in this.subwidgets) {
-				output += this.subwidgets[i].generateXML();
+				output += this.subwidgets[i].generateSubwidgetXML();
 			}
 
 		if (!this.skip) {
@@ -162,5 +298,37 @@ function Widget(console) {
 		}
 
 		return output;
+	}
+
+	/*
+	* @returns string
+	*/
+	this.generateSubwidgetXML = function()
+	{
+		if(this.config.useRelativeCoordinates) {
+			return this.generateRelativeCoordinatesXML();
+		}
+		else {
+			return this.generateAbsoluteCoordinatesXML();
+		}
+	}
+
+	/*
+	* @returns string
+	*/
+	this.generateAbsoluteCoordinatesXML = function()
+	{
+		return this.generateXML(this.coordinates);
+	}
+
+	/*
+	* @returns string
+	*/
+	this.generateRelativeCoordinatesXML = function()
+	{
+
+		var coordinates = this.getRelativeCoordinatesTowardParent();
+
+		return this.generateXML(coordinates['coord']);
 	}
 }

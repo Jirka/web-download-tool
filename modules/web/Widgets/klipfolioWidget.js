@@ -10,9 +10,9 @@ function klipfolioWidget(console) {
 	this.highcharts = new HighChartGraphs(console);
 	this.document = new Document(document, console);
 
-	this.init = function(html, config, level)
+	this.init = function(html, config, level, parent)
 	{
-		this.widget = this.document.createAndInitWidget(html, config, level);
+		this.widget = this.document.createAndInitWidget(html, config, level, parent);
 
 		if (level === 0) {
 			this.json = this.getJson();
@@ -61,19 +61,6 @@ function klipfolioWidget(console) {
 	}
 
 	this.getType = function() {
-		
-		//better check
-		// if (this.json !== null) {
-		// 	//this should be combination of klipfolio json and highcharts
-
-		// 	// console.log('KlipTypes::'+this.findFirstLevelTypes(json.components, {}));
-		// 	//return this.tyype(json.components, {});
-		// 	// console.log('numberOfComponents::'+this.json.components.length);
-		// 	console.log("---------------------START-----------------------");
-		// 	return this.getDetails(this.json.components);
-
-		// }
-
 		return 'CHART';
 
 	}
@@ -88,9 +75,7 @@ function klipfolioWidget(console) {
 		for (var i in node) {
 			if (node[i].type === 'panel_grid') {
 				var tmp = this.getDetails(node[i].components);
-				console.log(tmp);
 				if (tmp.length === 1) {
-					// tmp[0] === 
 				}
 			}
 			else if (node[i].type === 'input') {
@@ -116,9 +101,9 @@ function klipfolioWidget(console) {
 			widget.init(
 				this.widget.html,
 				this.widget.config,
-				this.widget.level + 1
+				this.widget.level + 1,
+				this.widget
 			);
-			// console.log('id pred '+node[i].id);
 			widget.json = node[i];
 			widget.execute();
 			widgets.push(widget.widget);
