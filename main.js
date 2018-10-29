@@ -26,9 +26,6 @@ page.viewportSize = {width: config.width, height: config.height};
 
 page.open(config.url, function(status){
     setTimeout(function(config){
-
-        console.log('timeout');
-
         //modules injection inside website context
         for(var j in config.modules){
             if(page.injectJs(config.modules[j]) === false){    

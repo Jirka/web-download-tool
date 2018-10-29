@@ -12,8 +12,6 @@ function websiteWidget()
 
 	this.execute = function()
 	{	
-		console.log('execute');
-
 		this.generalWidget.setCoordinates();
 		this.generalWidget.setSubwidgets(this.getSubwidgets());
 		this.generalWidget.getCssProperties();
@@ -21,8 +19,6 @@ function websiteWidget()
 	
 	this.getSubwidgets = function() 
 	{
-
-		console.log(this.generalWidget.level + " :::::::: " + this.generalWidget.maxLevel );
 		var subwidgets = [];
 		if (this.generalWidget.level <= this.generalWidget.maxLevel) {
 			for (var i in this.generalWidget.html.children) {

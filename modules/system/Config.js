@@ -199,9 +199,7 @@ function Config(fs, console)
 		exceptionMessage = 'In passed configurations, following errors has occured::\n';
 
 		for(var i in configurations){
-			console.log(i);
 			for(var j in configurations[i]){
-				console.log(j);
 				var propertyName = configurations[i][j];
 				this.validateProperty(j, propertyName, i);
 			}

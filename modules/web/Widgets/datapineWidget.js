@@ -70,7 +70,6 @@ function datapineWidget(console) {
 						this.widget.level + 1,
 						this.widget
 					);
-					console.log('--------------------seting:::' + this.widget.level +1);
 					widget.topLevelHtml = this.topLevelHtml;
 					widget.execute();
 					widgets.push(widget.widget);
