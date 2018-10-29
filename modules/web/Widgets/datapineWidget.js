@@ -20,7 +20,7 @@ function datapineWidget(console) {
 		}
 
 		//initialization of highcharts
-		this.highcharts.init(Highcharts, html);
+		// this.highcharts.init(Highcharts, html);
 	}
 
 	this.execute = function()
@@ -34,10 +34,10 @@ function datapineWidget(console) {
 	{
 		if (this.widget.level === 0) return '';
 
-		var type = this.highcharts.getProperty('type');
-		if (type === null) {
+		// var type = this.highcharts.getProperty('type');
+		// if (type === null) {
 			//default type
-		}
+		// }
 
 		return "CHART";
 	};

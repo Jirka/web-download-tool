@@ -39,7 +39,6 @@ function Service(console) {
 				widget.init(widgets[i], config, 0, null);
 				widget.execute();
 				this.widgets.push(widget.getWidget());
-				console.log(this.widgets[0].skip);
 			}
 		}
 

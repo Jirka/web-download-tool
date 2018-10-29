@@ -62,13 +62,15 @@ page.open(config.url, function(status){
 
         //takes screenshot of whole website
         page.render(config.getResultImagePath(null), {format: config.imageFormat, quality: this.imageQuality});
-        if(config.onlyScreen) phantom.exit(0);
+        if(config.onlyScreen) { 
+            phantom.exit(0);
+        }
 
         //saves content of page, just for debug
         // fs.write('./content/'+config.service+'/content', page.content, 'w');
 
         //creates screens of widgets
-        if(config.generateWidetScreenshots){
+        if(config.generateWidgetScreenshots){
             renderWidgets(dashResult.coordinates, null);
         }
 

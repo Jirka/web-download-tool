@@ -18,7 +18,7 @@ function klipfolioWidget(console) {
 			this.json = this.getJson();
 		}
 
-		this.highcharts.init(Highcharts, html);
+		// this.highcharts.init(Highcharts, html);
 	}
 
 	/*

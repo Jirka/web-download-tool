@@ -29,7 +29,7 @@ Listed below are properties which can be set in configuration file. Specificatio
     fileName
     resultPath
     screenPath
-    generateWidetScreenshots
+    generateWidgetScreenshots
     imageFormat
     imageQuality
     treatAsWebsite
@@ -38,7 +38,7 @@ Listed below are properties which can be set in configuration file. Specificatio
 
 
 ### Default values
-Listed below are preconfigured values of properties. Ones not listed are either service or website dependant.
+Listed below are preconfigured values of properties. The ones not listed are either service or website dependant.
 ```Javascript
 {
 	"height" : 1200,
@@ -49,7 +49,7 @@ Listed below are preconfigured values of properties. Ones not listed are either 
 	"widgetClasses" : [],
 	"resultPath" : "/result",
 	"screenPath" : "/screens",
-	"generateWidetScreenshots" : false,
+	"generateWidgetScreenshots" : false,
 	"imageFormat" : "png",
 	"imageQuality" : 100,
 	"treatAsWebsite" : false,
@@ -125,13 +125,13 @@ Determines where the result of generated services or website will be saved. It c
 ```
 
 #### Widget screen generation
-`generateWidetScreenshots` is a flag which determines whether screenshots of every widget should be generated. When set to `true`, result of generated screenshots will be saved to `screenPath` location. This location is relative towards property `resultPath` and cannot contain leading `/`.
+`generateWidgetScreenshots` is a flag which determines whether screenshots of every widget should be generated. When set to `true`, result of generated screenshots will be saved to `screenPath` location. This location is relative towards property `resultPath` and cannot contain leading `/`.
 
  
 ```Javascript
 { 
 	"screenPath" : string,
-	"generateWidetScreenshots" : boolean
+	"generateWidgetScreenshots" : boolean
 }
 ```
 

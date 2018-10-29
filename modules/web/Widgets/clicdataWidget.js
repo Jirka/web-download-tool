@@ -45,7 +45,6 @@ function clicdataWidget(console) {
 		var subwidgets = [];
 
 		if (this.highcharts.hasSubwidgets()) {
-			console.log('has subwidgets');
 			var ids = this.highcharts.ids;
 			for (var i in ids) {
 				var widget = new window[this.object](console);
