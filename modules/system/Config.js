@@ -107,6 +107,8 @@ function Config(fs, console)
 
 		jsonConfiguration = (jsonConfiguration !== null) ? jsonConfiguration : {};
 
+		jsonConfiguration = this.removeArgumentsWithNullValues(jsonConfiguration);
+
 		this.validateConfigurations({
 			'cli' : cliConfiguration,
 			'file' : jsonConfiguration,
@@ -128,6 +130,20 @@ function Config(fs, console)
 		this.setProperties(mergedConfiguration);
 	}
 
+
+	this.removeArgumentsWithNullValues = function(configuration)
+	{
+		var newConfiguration = {};
+
+		for(var i in configuration) {
+			if(configuration[i] !== null) {
+				console.log(configuration[i] + " here");
+				newConfiguration[i] = configuration[i];
+			}
+		}
+
+		return newConfiguration;
+	}
 
 	/*
 	* @throws Exception
