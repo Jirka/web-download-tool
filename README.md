@@ -1,44 +1,71 @@
 # Website download tool
 
-## CLI arguments
+## Installation
+
+1. Checkout the repository.
+2. Go to the repository ``cd web-download-tool/``
+3. run ``./prepare.sh`` (requires node.js and wget)
+4. Wait until the script downloads 3rd party dependencies
+
+## Usage
+
+### CLI arguments
 
 ```
-./phantomjs main.js [url] -c <file> [-a <path>]
+./phantomjs main.js (-url <url> | -c <path>) [optional parameters]
 ```
 
-##Suppored services
-TODO
+- [``-url <url>``](https://github.com/aduss/web-download-tool#url) - specifies URL of web page if it is not specified in main.js
+- [``-c <path>``](https://github.com/aduss/web-download-tool#configuration-file) - path to the configuration file which defines parameters of downloading
+- optional parameters which overrides the parameters defined in the configuration file
+  - [``-resultPath <path>``](https://github.com/aduss/web-download-tool#result-path)
+  - [``-fileName <file_name>``](https://github.com/aduss/web-download-tool#file-name)
+  - [``-imageFormat <extension_name>``](https://github.com/aduss/web-download-tool#image-config)
+  - [``-selector <name>``](https://github.com/aduss/web-download-tool#selector)
+  - [``-width <integer>``](https://github.com/aduss/web-download-tool#height-and-width)
+  - [``-height <integer>``](https://github.com/aduss/web-download-tool#height-and-width)
+  - [``-marginX <integer>``](https://github.com/aduss/web-download-tool#margin)
+  - [``-marginY <integer>``](https://github.com/aduss/web-download-tool#margin)
+  - [``-timeout <integer>``](https://github.com/aduss/web-download-tool#timeout)
+  - [``-maximumHierarchyLevel <integer>``](https://github.com/aduss/web-download-tool#hierarchy-level)
+  - [``-onlyScreen (true|false)``](https://github.com/aduss/web-download-tool#only-screen)
+  - [``-generateWidgetScreenshots (true|false)``](https://github.com/aduss/web-download-tool#widget-screen-generation)
+  
+TODO: implement short versions of parameters
 
-## Custom processing
-TODO
+### Configuration file
 
-## Configuration
 Configuration file MUST be in JSON format. Other formats are not supported.
 
-### Parameters
+#### Parameters
+
 Listed below are properties which can be set in configuration file. Specification of each will come later in this document. Properties which are NOT included in this list are ignored during execution. The order of properties is not considered.
+
 ```
     url
+    resultPath
+    fileName
+    imageFormat
+    imageQuality
     selector
-    height
     width
+    height
     marginX
     marginY
     timeout
-    widgetClasses
-    fileName
-    resultPath
-    screenPath
-    generateWidgetScreenshots
-    imageFormat
-    imageQuality
-    treatAsWebsite
     maxHierarchyLevel
+    generateWidgetScreenshots
+    screenPath
+    onlyScreen
+    treatAsWebsite
+    widgetClasses
 ```
 
 
-### Default values
+#### Default values
+
 Listed below are preconfigured values of properties. The ones not listed are either service or website dependant.
+
 ```Javascript
 {
 	"height" : 1200,
@@ -57,25 +84,51 @@ Listed below are preconfigured values of properties. The ones not listed are eit
 }
 ```
 
-### Properties
+#### Properties
 
-#### URL
-Determines which website will be analyzed. Property MUST be set either in configuration file or passed from CLI. When set in both places, configuration HAS higher priority. Value MUST BE represented in proper URL format, this means that `http` or `https` cannot be excluded. Any other format WILL result in error.
+##### URL
+Determines which website will be analyzed. The property MUST be set either in the configuration file or passed from CLI. When set in both places, configuration HAS a higher priority. The value MUST BE represented in proper URL format, this means that `http` or `https` cannot be excluded. Any other format WILL result returns an error.
 
 ```Javascript
 { "url" : http|https://your-website.com }
 ```
 
-#### Selector
-This property will be used in search for components in website hierarchy. Property is optional, non the less when not specified no components of website will be find. Format is constrained to CSS selector. Meaning `.class`, `#id`, `tag`.
+##### Result path
+Determines where the result of generated services or website will be saved. It can be either an absolute path or relative towards script location. The relative path cannot contain `/`
+
+```Javascript
+{ 
+	"result" : string 
+}
+```
+
+##### File name
+Determines the name of the screenshot of whole site and generated xml. If not specified, website's name WILL be used.
+
+```Javascript
+{ "filename" : string }
+```
+
+##### Image config
+This set of properties determines characteristics of screenshot. The `imageQuality` property determines the quality of the image and its value MUST BE in range of 0-100. 0 = lowest, 100 = highest. The value HAS impact on the size of the rendered file.
+
+```Javascript
+{ 
+	"imageFormat" : png|jpeg|pdf|bmp|ppm,
+	"imageQuality" : <0-100>
+}
+```
+
+##### Selector
+This property will be used in the search for components in the website hierarchy. The property is optional. If not specified, no components of website will be found. The format corresponds to CSS selector. Meaning `.class`, `#id`, `tag`.
 
 
 ```Javascript
 { "selector" : string }
 ```
 
-#### Height and Width
-Determines size of browser window in pixels.
+##### Height and Width
+Determines the size of a browser window in pixels.
 
 ```Javascript
 { 
@@ -84,8 +137,8 @@ Determines size of browser window in pixels.
 }
 ```
 
-#### Margin
-Determines margin in pixels. Property with suffix X in horizontal direction, the other with suffix Y in vertical direction. 
+##### Margin
+Determines the margin in pixels. The Property with the X suffix in the horizontal direction and the Y suffix in the vertical direction. 
 
 ```Javascript
 { 
@@ -94,38 +147,22 @@ Determines margin in pixels. Property with suffix X in horizontal direction, the
 }
 ```
 
-#### Timeout
-Determines how long should program wait before its own exectution. Might be useful especially with javascript rendered websites.
+##### Timeout
+Determines how long should the application wait for downloading the web page. Might be useful especially with the rendered websites using Javascript.
 
 ```Javascript
 { "timeout" : integer }
 ```
 
-#### Widget classes
-TODO
+##### Hierarchy level
+Determines the maximum level of hierarchy when creating subwidgets.
 
 ```Javascript
-{ "widgetClasses" : array }
+{ "maxHierarchyLevel" : integer }
 ```
 
-#### File name
-Determines how will screenshot of whole site and generated xml be named. When not specified website name WILL be used.
-
-```Javascript
-{ "filename" : string }
-```
-
-#### Result path
-Determines where the result of generated services or website will be saved. It can be either absolute path or relative towards script location. Relative path cannot contain `/`
-
-```Javascript
-{ 
-	"result" : string 
-}
-```
-
-#### Widget screen generation
-`generateWidgetScreenshots` is a flag which determines whether screenshots of every widget should be generated. When set to `true`, result of generated screenshots will be saved to `screenPath` location. This location is relative towards property `resultPath` and cannot contain leading `/`.
+##### Widget screen generation
+The `generateWidgetScreenshots` property is a flag which determines whether a screenshots of every widget should be generated. When it is set to `true`, the generated screenshots will be stored in the `screenPath` location. This location is relative towards the property `resultPath` and cannot contain leading `/`.
 
  
 ```Javascript
@@ -135,27 +172,25 @@ Determines where the result of generated services or website will be saved. It c
 }
 ```
 
-#### Image config
-This set of properties determines screenshot characteristic. Property `imageQuality`  determines quality of image and its value MUST BE in range of 0-100. 0 = lowest, 100 = highest. Value HAS impact on size of rendered file.
-
+##### Only screen
+The `onlyScreen` property is a flag which determines whether only a screenshots of web page should be exported.
+ 
 ```Javascript
 { 
-	"imageFormat" : png|jpeg|pdf|bmp|ppm,
-	"imageQuality" : <0-100>
+	"onlyScreen" : boolean,
 }
 ```
 
-#### TreatAsWebsite
-This flag only HAS effect in combination with supported services. When set to `true`, it overwrites service specific module with website module, no special treatment will be applied to execution of service.  
+##### TreatAsWebsite
+This flag HAS only an effect in the combination with the supported services. When it is set to `true`, it overrides a service module with website module, no special treatment will be applied to execution of service.  
 
 ```Javascript
 { "treatAsWebsite" : boolean }
 ```
 
-
-#### Hierarchy level
-Determines maximum level of hierarchy when creating subwidgets.
+##### Widget classes
+TODO
 
 ```Javascript
-{ "maxHierarchyLevel" : integer }
+{ "widgetClasses" : array }
 ```
